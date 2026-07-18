@@ -437,3 +437,11 @@ body{
 .auth-set{flex-direction:column;gap:10px;align-items:stretch;}
 .auth-set .btn{width:100%;}
 .auth-email-display{color:var(--gold);font-weight:700;margin-top:2px;}
+
+/* ---------- mistake book (Phase B) ---------- */
+.mistakes h2, .mistakes h3 { margin: 14px 0 8px; }
+.card-row { display:flex; align-items:center; gap:10px; background:rgba(255,255,255,.06); padding:10px 12px; border-radius:10px; margin-bottom:8px; }
+.card-row .cr-icon { font-size:1.3em; }
+.card-row .cr-name { flex:1; }
+.card-row .cr-meta { font-size:.85em; opacity:.8; white-space:nowrap; }
+.card-row .bar { flex:1; height:8px; background:rgba(0,0,0,.25); border-radius:4px; overflow:hidden; }

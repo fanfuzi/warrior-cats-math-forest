@@ -30,10 +30,21 @@ export async function onRequestPost(context){
   if(!correct){
     var next = new Date(Date.now() + 24*60*60*1000).toISOString();
     await env.DB.prepare(
-      'INSERT INTO mistakes (user_id,q_key,level_id,kp,error_type,wrong_count,last_wrong_at,next_review_at,mastered) ' +
-      'VALUES (?,?,?,?,?,1,?,?,0) ' +
-      'ON CONFLICT(user_id,q_key) DO UPDATE SET wrong_count=mistakes.wrong_count+1, last_wrong_at=excluded.last_wrong_at, next_review_at=excluded.next_review_at, mastered=0'
+      'INSERT INTO mistakes (user_id,q_key,level_id,kp,error_type,wrong_count,last_wrong_at,next_review_at,mastered,review_stage) ' +
+      'VALUES (?,?,?,?,?,1,?,?,0,0) ' +
+      'ON CONFLICT(user_id,q_key) DO UPDATE SET wrong_count=mistakes.wrong_count+1, last_wrong_at=excluded.last_wrong_at, next_review_at=excluded.next_review_at, mastered=0, review_stage=0'
     ).bind(user.id, body.q_key||'', body.level_id||'', body.kp||'', body.error_type||null, now, next).run();
+  }
+  /* correct review answer: advance spaced-repetition stage */
+  if(correct && body.review){
+    var cur = await env.DB.prepare('SELECT review_stage FROM mistakes WHERE user_id=? AND q_key=?').bind(user.id, body.q_key||'').first();
+    if(cur){
+      var stage = (cur.review_stage||0)+1;
+      var intervals=[1,3,7,21]; var days=intervals[Math.min(stage,3)];
+      var rnext = new Date(Date.now()+days*86400000).toISOString();
+      var rmastered = stage>=3?1:0;
+      await env.DB.prepare('UPDATE mistakes SET next_review_at=?, review_stage=?, mastered=? WHERE user_id=? AND q_key=?').bind(rnext, stage, rmastered, user.id, body.q_key||'').run();
+    }
   }
   return jsonResponse({ ok: true });
 }
@@ -44,7 +55,7 @@ export async function onRequestGet(context){
   var user = await getUserFromRequest(request, env);
   if(!user) return jsonResponse({ error: 'Unauthorized' }, 401);
   var mistakes = await env.DB.prepare(
-    'SELECT q_key,level_id,kp,error_type,wrong_count,last_wrong_at,next_review_at,mastered FROM mistakes WHERE user_id=? AND mastered=0'
+    'SELECT q_key,level_id,kp,error_type,wrong_count,last_wrong_at,next_review_at,mastered,review_stage FROM mistakes WHERE user_id=? AND mastered=0'
   ).bind(user.id).all();
   var weak = await env.DB.prepare(
     'SELECT kp,season,attempts,correct,mastery_rate,ai_summary,ai_updated_at FROM weak_points WHERE user_id=?'

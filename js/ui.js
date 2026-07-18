@@ -31,6 +31,7 @@ WCM.ui.render = function(){
     case 'cards': el.innerHTML = WCM.ui.renderCards(); break;
     case 'cardview': el.innerHTML = WCM.ui.renderCardView(); break;
     case 'auth': el.innerHTML = WCM.ui.renderAuth(); break;
+    case 'mistakes': el.innerHTML = WCM.ui.renderMistakes(); break;
     default: el.innerHTML = WCM.ui.renderHome();
   }
   window.scrollTo(0,0);
@@ -136,6 +137,7 @@ WCM.ui.renderHome = function(){
       '<button class="btn primary big" data-action="play">▶ '+WCM.t('play')+'</button>'+
       '<button class="btn" data-action="settings">⚙ '+WCM.t('settings')+'</button>'+
       '<button class="btn" data-action="cards">🃏 '+WCM.t('cardAlbum')+' ('+WCM.cardCount()+'/'+WCM.CARDS.length+')</button>'+
+      '<button class="btn" data-action="mistakes">📖 '+WCM.t('mistakeBook')+' ('+WCM.mistakeCount()+')</button>'+
       '<button class="btn ghost lang-toggle" data-action="lang-toggle">🌐 '+(zh?'English':'繁體中文')+'</button>'+
     '</div>'+
     (WCM.isLoggedIn()
@@ -270,8 +272,11 @@ WCM.ui.renderLevel = function(){
   var tierIcons=['❄','🌿','🔥'];
   var tierLabels=[WCM.t('adaptEasy'),WCM.t('adaptNormal'),WCM.t('adaptHard')];
   var tierChip='<span class="lvl-tier tier-'+s.tier+'">'+tierIcons[s.tier]+' '+tierLabels[s.tier]+'</span>';
-  var head = '<div class="lvl-head"><button class="icon-btn" data-action="map">‹</button>'+
-    '<div class="lvl-title">'+s.level.icon+' '+WCM.levelName(s.level)+'</div>'+
+  var _lv = s.curLevel || s.level;
+  var _back = s.isReview ? 'home' : 'map';
+  var _title = s.isReview ? (WCM.t('reviewTitle')+' · '+WCM.levelName(_lv)) : (_lv.icon+' '+WCM.levelName(_lv));
+  var head = '<div class="lvl-head"><button class="icon-btn" data-action="'+_back+'">‹</button>'+
+    '<div class="lvl-title">'+_title+'</div>'+
     '<div class="lvl-prog">'+progTxt+'</div></div>'+
     '<div class="lvl-score">'+WCM.t('score')+': '+s.correct+' · '+WCM.t('points')+': '+s.gainedPts+tierChip+'</div>';
 
@@ -524,6 +529,8 @@ WCM.ui.handleClick = function(e){
     case 'lang-zh': WCM.setLang('zh-TW'); WCM.ui.render(); break;
     case 'lang-toggle': WCM.setLang(WCM.lang==='en'?'zh-TW':'en'); WCM.ui.render(); break;
     case 'cards': WCM.audio.click(); WCM.ui.go('cards'); break;
+    case 'mistakes': WCM.audio.click(); WCM.ui.go('mistakes'); break;
+    case 'review': WCM.audio.click(); WCM.ui.startReview(); break;
     case 'view-card': WCM.ui.viewCardId = node.getAttribute('data-id'); WCM.audio.click(); WCM.ui.go('cardview'); break;
     case 'sound-on': WCM.setSound(true); WCM.audio.click(); WCM.ui.render(); break;
     case 'sound-off': WCM.setSound(false); WCM.ui.render(); break;
@@ -563,32 +570,41 @@ WCM.ui.submit = function(){
 WCM.ui.gradeCurrent = function(val){
   var s=WCM.ui.session; if(!s||s.answered) return;
   var q=s.questions[s.idx];
+  var lv = s.curLevel || s.level;
   s.selected = (q.type==='mc')?val:null;
   s.answered=true; s.lastVal=val; s.lastCorrect=WCM.isCorrect(q,val);
   if(s.lastCorrect){
     s.streak = s.streak>=0 ? s.streak+1 : 1;
-    if(s.streak>=2 && s.tier<2){ s.tier++; s.streak=0; }
+    if(!s.isReview && s.streak>=2 && s.tier<2){ s.tier++; s.streak=0; }
     var bonus = s.tier*2;
     s.correct++; s.gainedPts+=q.pts+bonus; s.gainedPrey[q.prey]=(s.gainedPrey[q.prey]||0)+1;
     WCM.addReward(q.prey,q.pts+bonus); WCM.audio.correct(); WCM.trackCorrect();
-    WCM.markMastered(s.level, q);
+    if(!s.isReview) WCM.markMastered(lv, q);
   } else {
     s.streak = s.streak<=0 ? s.streak-1 : -1;
-    if(s.streak<=-3 && s.tier>0){ s.tier--; s.streak=0; }
+    if(!s.isReview && s.streak<=-3 && s.tier>0){ s.tier--; s.streak=0; }
     WCM.audio.wrong();
   }
   var _dur = s.qStart ? (Date.now()-s.qStart) : null;
-  WCM.recordAttempt(s.level, q, s.lastCorrect, val, s.tier, _dur);
+  WCM.recordAttempt(lv, q, s.lastCorrect, val, s.tier, _dur);
+  if(s.isReview){ var _o=s.reviewOrigins[s.idx]; if(_o) WCM.scheduleReview(_o, s.lastCorrect); }
   WCM.ui.render();
 };
 
 WCM.ui.next = function(){
   var s=WCM.ui.session; s.idx++;
   if(s.idx>=s.total){ WCM.ui.finish(); return; }
-  WCM.setGenTier(s.tier);
-  var q = WCM.generateUnique(s.level, s.seenKeys);
-  s.seenKeys[WCM.qKey(s.level, q)] = true;
-  s.questions.push(q);
+  if(s.isReview){
+    var item = s.reviewQueue[s.idx];
+    s.curLevel = item.level;
+    s.questions.push(item.q);
+    s.reviewOrigins.push(item.originKey);
+  } else {
+    WCM.setGenTier(s.tier);
+    var q = WCM.generateUnique(s.level, s.seenKeys);
+    s.seenKeys[WCM.qKey(s.level, q)] = true;
+    s.questions.push(q);
+  }
   s.answered=false; s.input=''; s.hintShown=false; s.selected=null; s.qStart=Date.now();
   WCM.ui.render();
 };
@@ -597,10 +613,11 @@ WCM.ui.finish = function(){
   var s=WCM.ui.session; var total=s.total; var acc=s.correct/total;
   WCM.trackHuntComplete();
   var stars = acc>=0.9?3:acc>=0.7?2:acc>=0.5?1:0;
-  s.stars=stars; WCM.recordLevel(s.level.id, stars, s.correct);
+  s.stars=stars;
+  if(!s.isReview) WCM.recordLevel(s.level.id, stars, s.correct);
   s.bonus = stars>0 ? stars*5 : 0;
   if(s.bonus>0){ WCM.state.points += s.bonus; WCM.saveState(); }
-  if(s.level.boss && stars>=2){
+  if(!s.isReview && s.level.boss && stars>=2){
     var region=WCM.regionOfLevel(s.level.id);
     s.badgeEarned=WCM.awardBadge(region.id);
     if(s.badgeEarned) WCM.audio.badge();
@@ -609,11 +626,76 @@ WCM.ui.finish = function(){
   s.rankUp = curIdx>s.startRankIdx ? WCM.RANKS[curIdx] : null;
   var cardId=null;
   if(s.rankUp){ cardId=WCM.signatureCardForRank(curIdx); if(!cardId||WCM.hasCard(cardId)) cardId=WCM.randomUncollectedCard(); }
-  else if(s.level.boss && stars>=2){ cardId=WCM.randomUncollectedCard(); }
+  else if(s.isReview && stars>=2){ cardId=WCM.randomUncollectedCard(); }
+  else if(!s.isReview && s.level.boss && stars>=2){ cardId=WCM.randomUncollectedCard(); }
   if(cardId){ WCM.addCard(cardId); s.cardEarned=WCM.cardById(cardId); }
   if(s.badgeEarned){ /* badge fanfare already played */ }
   else if(s.rankUp) WCM.audio.levelup();
   else if(s.cardEarned) WCM.audio.badge();
   else WCM.audio.star();
   WCM.ui.go('reward');
+};
+
+/* ---------- mistake book & review hunt (Phase B) ---------- */
+WCM.ui.startReview = function(){
+  var due = WCM.getDueMistakes();
+  if(!due.length){ WCM.ui.toast(WCM.t('noMistakes')); return; }
+  var queue = [], seen = {};
+  for(var i=0;i<due.length && queue.length<5;i++){
+    var lv = WCM.levelById(due[i].level_id);
+    if(!lv) continue;
+    seen[due[i].q_key] = true;
+    var q = WCM.generateUnique(lv, seen);
+    queue.push({ level: lv, q: q, originKey: due[i].q_key });
+    seen[WCM.qKey(lv, q)] = true;
+  }
+  if(!queue.length){ WCM.ui.toast(WCM.t('noMistakes')); return; }
+  WCM.ui.session = {
+    isReview: true, reviewQueue: queue, reviewOrigins: [queue[0].originKey],
+    questions: [queue[0].q], curLevel: queue[0].level, level: queue[0].level,
+    idx:0, total: queue.length, correct:0, gainedPts:0, gainedPrey:{},
+    tier:1, streak:0, hintShown:false, answered:false, input:'', selected:null,
+    seenKeys: seen, startRankIdx: WCM.rankIndexAt(WCM.state.points), badgeEarned:false, qStart: Date.now()
+  };
+  WCM.ui.go('level');
+};
+
+WCM.ui.renderMistakes = function(){
+  var due = WCM.getDueMistakes();
+  var all = WCM.state.mistakesMirror || {};
+  var active = [];
+  for(var k in all) if(!all[k].mastered) active.push(all[k]);
+  var wp = WCM.weakPointsSorted();
+  var dueHtml = due.length
+    ? '<button class="btn primary big" data-action="review">▶ '+WCM.t('startReview')+' ('+due.length+')</button>'
+    : '<div class="daily-done-msg">'+WCM.t('noMistakes')+'</div>';
+  var listHtml = active.map(function(m){
+    var lv = WCM.levelById(m.level_id);
+    var name = lv ? WCM.levelName(lv) : (m.kp||'?');
+    var icon = lv ? lv.icon : '📝';
+    var dueTxt = m.next_review_at ? new Date(m.next_review_at).toLocaleDateString() : '-';
+    return '<div class="card-row"><span class="cr-icon">'+icon+'</span>'+
+      '<span class="cr-name">'+name+'</span>'+
+      '<span class="cr-meta">×'+(m.wrong_count||1)+'</span>'+
+      '<span class="cr-meta">'+WCM.t('dueNow')+': '+dueTxt+'</span></div>';
+  }).join('') || '<div class="daily-done-msg">'+WCM.t('noMistakes')+'</div>';
+  var wpHtml = wp.slice(0,6).map(function(p){
+    var pct = Math.round((p.mastery_rate||0)*100);
+    var lv = WCM.levelById(p.kp);
+    if(!lv){ for(var i=0;i<WCM.LEVELS.length;i++){ if(WCM.LEVELS[i].gen===p.kp){ lv=WCM.LEVELS[i]; break; } } }
+    var name = lv ? WCM.levelName(lv) : p.kp;
+    return '<div class="card-row"><span class="cr-name">'+name+'</span>'+
+      '<div class="bar"><div class="bar-fill" style="width:'+pct+'%"></div></div>'+
+      '<span class="cr-meta">'+pct+'%</span></div>';
+  }).join('');
+  return '<div class="screen mistakes">'+
+    '<div class="forest-bg"></div>'+
+    statusBar()+
+    '<div class="content">'+
+      '<h2>📖 '+WCM.t('mistakeBook')+'</h2>'+
+      dueHtml+
+      '<h3>📋 '+WCM.t('mistakeBook')+' ('+active.length+')</h3>'+
+      listHtml+
+      (wp.length ? '<h3>🎯 '+WCM.t('weakPoints')+'</h3>'+wpHtml : '')+
+    '</div></div>';
 };
