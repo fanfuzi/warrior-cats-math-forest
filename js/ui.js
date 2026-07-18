@@ -1,6 +1,6 @@
 /* Warrior Cats Math Forest - UI rendering & interaction */
 window.WCM = window.WCM || {};
-WCM.ui = { screen:'home', session:null, currentRegion:null, authMode:'login', authError:'' };
+WCM.ui = { screen:'home', session:null, currentRegion:null, authMode:'login', authError:'', aiText:'' };
 
 WCM.ui.go = function(screen){ WCM.ui.screen = screen; WCM.ui.render(); };
 
@@ -540,6 +540,18 @@ WCM.ui.handleClick = function(e){
     case 'grade': WCM.audio.click(); WCM.ui.go('grade'); break;
     case 'set-grade': WCM.audio.click(); WCM.setGrade(parseInt(node.getAttribute('data-grade'),10)||1); WCM.ui.go('home'); break;
     case 'daily-checkin': WCM.audio.click(); WCM.ui.startDailyCheckin(); break;
+    case 'ai-summary':
+      WCM.audio.click();
+      WCM.ui.aiText = WCM.t('aiAnalyzing');
+      WCM.ui.render();
+      WCM.api('ai-summary','POST').then(function(res){
+        if(res && res.configured===false){ WCM.ui.aiText = WCM.t('aiNotConfigured'); }
+        else if(res && res.summaries && res.summaries.length){ WCM.ui.aiText = res.summaries[0].text; WCM.syncLearningMirror(); }
+        else if(res && res.error){ WCM.ui.aiText = res.error; }
+        else { WCM.ui.aiText = WCM.t('noMistakes'); }
+        WCM.ui.render();
+      }).catch(function(e){ WCM.ui.aiText = String(e); WCM.ui.render(); });
+      break;
     case 'view-card': WCM.ui.viewCardId = node.getAttribute('data-id'); WCM.audio.click(); WCM.ui.go('cardview'); break;
     case 'sound-on': WCM.setSound(true); WCM.audio.click(); WCM.ui.render(); break;
     case 'sound-off': WCM.setSound(false); WCM.ui.render(); break;
@@ -710,6 +722,7 @@ WCM.ui.renderMistakes = function(){
       '<h3>📋 '+WCM.t('mistakeBook')+' ('+active.length+')</h3>'+
       listHtml+
       (wp.length ? '<h3>🎯 '+WCM.t('weakPoints')+'</h3>'+wpHtml : '')+
+      '<div class="ai-section"><button class="btn" data-action="ai-summary">🤖 '+WCM.t('aiAnalyze')+'</button>'+(WCM.ui.aiText?'<div class="ai-text">'+WCM.ui.aiText+'</div>':'')+'</div>'+
     '</div></div>';
 };
 
