@@ -1,0 +1,15 @@
+{
+  "name": "Warrior Cats Math Forest",
+  "short_name": "Cat Math",
+  "description": "A cat-themed math adventure: mixed operations, decimals, geometry and 3D spatial skills.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f1f08",
+  "theme_color": "#1a3409",
+  "lang": "en",
+  "icons": [
+    { "src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
