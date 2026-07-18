@@ -467,3 +467,18 @@ body{
 /* AI mentor analysis (Phase E) */
 .ai-section { margin-top:14px; }
 .ai-text { margin-top:8px; background:rgba(255,255,255,.06); padding:10px 12px; border-radius:10px; font-size:.92em; line-height:1.5; white-space:pre-wrap; }
+
+/* ---------- micro-lessons (Phase F) ---------- */
+.cpa-card{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px 16px; margin:10px 0; box-shadow:var(--shadow); }
+.cpa-card.cpa-concrete{ border-left:4px solid var(--fire); }
+.cpa-card.cpa-pictorial{ border-left:4px solid var(--leaf); }
+.cpa-card.cpa-abstract{ border-left:4px solid var(--gold); }
+.cpa-kind{ font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--gold); opacity:.85; }
+.cpa-heading{ font-size:17px; font-weight:800; margin:4px 0 6px; }
+.cpa-body{ color:var(--dim); line-height:1.55; font-size:15px; }
+.cpa-formula{ margin-top:10px; background:rgba(255,213,107,.12); border:1px dashed var(--line); border-radius:10px; padding:10px 12px; font-weight:800; color:var(--gold); text-align:center; }
+.screen.course .content{ max-width:560px; }
+.screen.course .icon-btn{ margin-bottom:6px; }
+.screen.course-done{ text-align:center; }
+.screen.course-done .cat-hero{ font-size:64px; margin:10px 0; }
+.course-stars{ font-size:34px; color:var(--gold); letter-spacing:4px; margin:8px 0 14px; }

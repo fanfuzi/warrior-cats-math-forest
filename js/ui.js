@@ -1,6 +1,6 @@
 /* Warrior Cats Math Forest - UI rendering & interaction */
 window.WCM = window.WCM || {};
-WCM.ui = { screen:'home', session:null, currentRegion:null, authMode:'login', authError:'', aiText:'' };
+WCM.ui = { screen:'home', session:null, currentRegion:null, authMode:'login', authError:'', aiText:'', courseId:null, courseState:null, courseDone:null };
 
 WCM.ui.go = function(screen){ WCM.ui.screen = screen; WCM.ui.render(); };
 
@@ -33,6 +33,8 @@ WCM.ui.render = function(){
     case 'auth': el.innerHTML = WCM.ui.renderAuth(); break;
     case 'mistakes': el.innerHTML = WCM.ui.renderMistakes(); break;
     case 'grade': el.innerHTML = WCM.ui.renderGrade(); break;
+    case 'course': el.innerHTML = WCM.ui.renderCourse(); break;
+    case 'courseDone': el.innerHTML = WCM.ui.renderCourseDone(); break;
     default: el.innerHTML = WCM.ui.renderHome();
   }
   window.scrollTo(0,0);
@@ -280,7 +282,7 @@ WCM.ui.renderLevel = function(){
   var tierChip='<span class="lvl-tier tier-'+s.tier+'">'+tierIcons[s.tier]+' '+tierLabels[s.tier]+'</span>';
   var _lv = s.curLevel || s.level;
   var _back = s.isReview ? 'home' : 'map';
-  var _title = s.isDaily ? WCM.t('dailyCheckin') : (s.isReview ? (WCM.t('reviewTitle')+' · '+WCM.levelName(_lv)) : (_lv.icon+' '+WCM.levelName(_lv)));
+  var _title = s.isCourse ? (s.courseTitle||WCM.t('courseLabel')) : (s.isDaily ? WCM.t('dailyCheckin') : (s.isReview ? (WCM.t('reviewTitle')+' · '+WCM.levelName(_lv)) : (_lv.icon+' '+WCM.levelName(_lv))));
   var head = '<div class="lvl-head"><button class="icon-btn" data-action="'+_back+'">‹</button>'+
     '<div class="lvl-title">'+_title+'</div>'+
     '<div class="lvl-prog">'+progTxt+'</div></div>'+
@@ -536,6 +538,9 @@ WCM.ui.handleClick = function(e){
     case 'lang-toggle': WCM.setLang(WCM.lang==='en'?'zh-TW':'en'); WCM.ui.render(); break;
     case 'cards': WCM.audio.click(); WCM.ui.go('cards'); break;
     case 'mistakes': WCM.audio.click(); WCM.ui.go('mistakes'); break;
+    case 'open-course': WCM.audio.click(); WCM.ui.openCourse(node.getAttribute('data-kp')); break;
+    case 'start-course': WCM.audio.click(); WCM.ui.startCourse(WCM.courseById(WCM.ui.courseId)); break;
+    case 'course-hunt': WCM.audio.click(); WCM.ui.courseHunt(); break;
     case 'review': WCM.audio.click(); WCM.ui.startReview(); break;
     case 'grade': WCM.audio.click(); WCM.ui.go('grade'); break;
     case 'set-grade': WCM.audio.click(); WCM.setGrade(parseInt(node.getAttribute('data-grade'),10)||1); WCM.ui.go('home'); break;
@@ -641,6 +646,7 @@ WCM.ui.finish = function(){
   WCM.trackHuntComplete();
   var stars = acc>=0.9?3:acc>=0.7?2:acc>=0.5?1:0;
   s.stars=stars;
+  if(s.isCourse){ WCM.ui.courseDone = { stars: stars }; WCM.ui.go('courseDone'); return; }
   if(!s.isReview) WCM.recordLevel(s.level.id, stars, s.correct);
   s.bonus = stars>0 ? stars*5 : 0;
   if(s.bonus>0){ WCM.state.points += s.bonus; WCM.saveState(); }
@@ -719,6 +725,16 @@ WCM.ui.renderMistakes = function(){
       '<div class="bar"><div class="bar-fill" style="width:'+pct+'%"></div></div>'+
       '<span class="cr-meta">'+pct+'%</span></div>';
   }).join('');
+  var recs = (WCM.weakCourseRecommendations ? WCM.weakCourseRecommendations() : []);
+  var recHtml = recs.length ? '<h3>📚 '+WCM.t('courseRec')+'</h3>'+recs.map(function(p){
+    var rlv = WCM.levelByGen(p.kp);
+    var rname = rlv ? WCM.levelName(rlv) : p.kp;
+    var rcrs = WCM.courseForKp(p.kp);
+    var rpct = Math.round((p.mastery_rate||0)*100);
+    return '<div class="card-row"><div class="cr-body"><div class="cr-name">'+rname+' · '+rpct+'%</div>'+
+      '<div class="bar"><div class="bar-fill" style="width:'+rpct+'%"></div></div></div>'+
+      '<button class="btn primary small" data-action="open-course" data-kp="'+p.kp+'">📚 '+WCM.lt(rcrs.title)+'</button></div>';
+  }).join('') : '';
   return '<div class="screen mistakes">'+
     '<div class="forest-bg"></div>'+
     statusBar()+
@@ -728,6 +744,7 @@ WCM.ui.renderMistakes = function(){
       '<h3>📋 '+WCM.t('mistakeBook')+' ('+active.length+')</h3>'+
       listHtml+
       (wp.length ? '<h3>🎯 '+WCM.t('weakPoints')+'</h3>'+wpHtml : '')+
+      recHtml+
       '<div class="ai-section"><button class="btn" data-action="ai-summary">🤖 '+WCM.t('aiAnalyze')+'</button>'+(WCM.ui.aiText?'<div class="ai-text">'+WCM.ui.aiText+'</div>':'')+'</div>'+
     '</div></div>';
 };
@@ -786,4 +803,78 @@ WCM.ui.startDailyCheckin = function(){
     seenKeys: seen, startRankIdx: WCM.rankIndexAt(WCM.state.points), badgeEarned:false, qStart: Date.now()
   };
   WCM.ui.go('level');
+};
+
+/* ---------- weak-point micro-lessons (Phase F) ---------- */
+WCM.ui.openCourse = function(kp){
+  var c = WCM.courseForKp(kp);
+  if(!c){ WCM.ui.go('mistakes'); return; }
+  WCM.ui.courseId = c.id;
+  WCM.ui.courseDone = null;
+  WCM.ui.go('course');
+};
+WCM.ui.startCourse = function(course){
+  if(!course) course = WCM.courseById(WCM.ui.courseId);
+  if(!course){ WCM.ui.go('home'); return; }
+  var lv = WCM.levelById(course.practiceLevelId) || WCM.levelByGen(course.kp);
+  var guided = course.guided || [];
+  if(!guided.length || !lv){ if(lv) WCM.ui.startLevel(lv); else WCM.ui.go('home'); return; }
+  var queue = guided.map(function(gq){ return { level: lv, q: WCM.resolveQ(gq), originKey: null }; });
+  WCM.ui.session = {
+    isReview: true, isCourse: true, courseTitle: WCM.lt(course.title),
+    reviewQueue: queue, reviewOrigins: [null],
+    questions: [queue[0].q], curLevel: lv, level: lv,
+    idx:0, total: queue.length, correct:0, gainedPts:0, gainedPrey:{},
+    tier:1, streak:0, hintShown:false, answered:false, input:'', selected:null,
+    seenKeys:{}, startRankIdx: WCM.rankIndexAt(WCM.state.points), badgeEarned:false, qStart: Date.now()
+  };
+  WCM.ui.go('level');
+};
+WCM.ui.courseHunt = function(){
+  var c = WCM.courseById(WCM.ui.courseId);
+  var lv = c ? (WCM.levelById(c.practiceLevelId) || WCM.levelByGen(c.kp)) : null;
+  WCM.ui.courseDone = null;
+  if(lv){ WCM.ui.startLevel(lv); } else { WCM.ui.go('home'); }
+};
+WCM.ui.renderCourse = function(){
+  var c = WCM.courseById(WCM.ui.courseId);
+  if(!c){ WCM.ui.go('mistakes'); return ''; }
+  var kindLabel = { concrete:WCM.t('cpConcrete'), pictorial:WCM.t('cpPictorial'), abstract:WCM.t('cpAbstract') };
+  var kindIcon = { concrete:'🖐️', pictorial:'🖼️', abstract:'➗' };
+  var stepsHtml = (c.steps||[]).map(function(s){
+    var svg = typeof s.svg==='function' ? s.svg() : (s.svg||'');
+    var svgHtml = svg ? '<div class="q-svg">'+svg+'</div>' : '';
+    var fTxt = WCM.lt(s.formula);
+    var fHtml = fTxt ? '<div class="cpa-formula">'+fTxt+'</div>' : '';
+    return '<div class="cpa-card cpa-'+s.kind+'"><div class="cpa-kind">'+kindIcon[s.kind]+' '+kindLabel[s.kind]+'</div>'+
+      '<div class="cpa-heading">'+WCM.lt(s.heading)+'</div>'+
+      '<div class="cpa-body">'+WCM.lt(s.body)+'</div>'+svgHtml+fHtml+'</div>';
+  }).join('');
+  var lv = WCM.levelById(c.practiceLevelId) || WCM.levelByGen(c.kp);
+  var lvName = lv ? WCM.levelName(lv) : '';
+  return '<div class="screen course"><div class="forest-bg"></div>'+
+    statusBar()+
+    '<div class="content">'+
+      '<button class="icon-btn" data-action="mistakes">‹</button>'+
+      '<h2>📚 '+WCM.lt(c.title)+'</h2>'+
+      stepsHtml+
+      '<button class="btn primary big" data-action="start-course">▶ '+WCM.t('startGuided')+(lvName?' · '+lvName:'')+'</button>'+
+      '<p class="lang-hint">'+WCM.t('courseHint')+'</p>'+
+    '</div></div>';
+};
+WCM.ui.renderCourseDone = function(){
+  var c = WCM.courseById(WCM.ui.courseId);
+  var st = WCM.ui.courseDone || {stars:0};
+  var lv = c ? (WCM.levelById(c.practiceLevelId) || WCM.levelByGen(c.kp)) : null;
+  var lvName = lv ? WCM.levelName(lv) : '';
+  var stars=''; for(var i=0;i<3;i++) stars += i<(st.stars||0)?'★':'☆';
+  return '<div class="screen course-done"><div class="forest-bg"></div>'+
+    '<div class="content">'+
+      '<div class="cat-hero">🐱</div>'+
+      '<h2>🎉 '+WCM.t('courseDone')+'</h2>'+
+      '<div class="course-stars">'+stars+'</div>'+
+      '<p class="story-intro">'+WCM.t('courseHint')+'</p>'+
+      '<button class="btn primary big" data-action="course-hunt">🏹 '+WCM.t('courseHunt')+(lvName?' · '+lvName:'')+'</button>'+
+      '<button class="btn ghost" data-action="mistakes">'+WCM.t('back')+'</button>'+
+    '</div></div>';
 };
