@@ -1,8 +1,32 @@
 /* Warrior Cats Math Forest - mistake book & spaced repetition (Phase B) */
 window.WCM = window.WCM || {};
 
-/* Spaced-repetition intervals (days) by review stage: 1 -> 3 -> 7 -> 21. */
-WCM.REVIEW_INTERVALS = [1, 3, 7, 21];
+/* Cache of the exact original question for each wrong q_key, so review
+   re-shows the very same question/figure the student missed (not a fresh
+   random one of the same type). Kept in its own localStorage key so cloud
+   sync (which rebuilds mistakesMirror from server rows) never wipes it. */
+WCM.RQ_KEY = 'wcm_rq_v1';
+WCM._rq = null;
+WCM.rqAll = function(){
+  if(WCM._rq===null){ try{ WCM._rq = JSON.parse(localStorage.getItem(WCM.RQ_KEY))||{}; }catch(e){ WCM._rq={}; } }
+  return WCM._rq;
+};
+WCM.rqGet = function(qKey){ return WCM.rqAll()[qKey] || null; };
+WCM.rqPut = function(qKey, q){
+  var r = WCM.rqAll();
+  r[qKey] = q;
+  var keys = Object.keys(r);
+  if(keys.length > 60){ for(var i=0;i<keys.length-50;i++){ delete r[keys[i]]; } }
+  try{ localStorage.setItem(WCM.RQ_KEY, JSON.stringify(r)); }catch(e){}
+};
+
+/* Keep the local mistake mirror from growing without bound: when it exceeds
+   the cap, drop graduated (mastered) entries - they are hidden anyway. */
+WCM.pruneMistakeMirror = function(m){
+  var keys = Object.keys(m);
+  if(keys.length <= 50) return;
+  for(var i=0;i<keys.length;i++){ if(m[keys[i]] && m[keys[i]].mastered) delete m[keys[i]]; }
+};
 
 /* Due mistakes: next_review_at <= now and not mastered. Oldest due first. */
 WCM.getDueMistakes = function(){
@@ -12,6 +36,7 @@ WCM.getDueMistakes = function(){
   for(var k in m){
     var row = m[k];
     if(row.mastered) continue;
+    row.q_key = k;
     if(!row.next_review_at || row.next_review_at <= now) out.push(row);
   }
   out.sort(function(a,b){ return (a.next_review_at||'') < (b.next_review_at||'') ? -1 : 1; });
@@ -25,6 +50,7 @@ WCM.getAllMistakes = function(){
   for(var k in m){
     var row = m[k];
     if(row.mastered) continue;
+    row.q_key = k;
     if(!row.display){ var p=(k||'').split('|'); if(p.length>=3){ row.display=p.slice(1,-1).join('|'); if(!row.correct_answer) row.correct_answer=p[p.length-1]; } }
     out.push(row);
   }
@@ -47,11 +73,11 @@ WCM.scheduleReview = function(qKey, correct){
   if(!row) return;
   var now = new Date();
   if(correct){
-    var stage = (row.review_stage||0) + 1;
-    var days = WCM.REVIEW_INTERVALS[Math.min(stage, WCM.REVIEW_INTERVALS.length-1)];
-    row.review_stage = stage;
-    row.next_review_at = new Date(now.getTime() + days*86400000).toISOString();
-    if(stage >= WCM.REVIEW_INTERVALS.length) row.mastered = 1;
+    /* Correct on review -> graduate: remove from the active mistake book.
+       If the same question is missed again later, recordAttempt re-adds it. */
+    row.mastered = 1;
+    row.review_stage = (row.review_stage||0) + 1;
+    row.next_review_at = null;
   } else {
     row.review_stage = 0;
     row.wrong_count = (row.wrong_count||0) + 1;
@@ -59,6 +85,7 @@ WCM.scheduleReview = function(qKey, correct){
     row.mastered = 0;
   }
   m[qKey] = row;
+  WCM.pruneMistakeMirror(m);
   WCM.state.mistakesMirror = m;
   WCM.saveLocal();
   if(WCM.isLoggedIn && WCM.isLoggedIn()){

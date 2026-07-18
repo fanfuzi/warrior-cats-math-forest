@@ -35,16 +35,11 @@ export async function onRequestPost(context){
       'ON CONFLICT(user_id,q_key) DO UPDATE SET wrong_count=mistakes.wrong_count+1, last_wrong_at=excluded.last_wrong_at, next_review_at=excluded.next_review_at, mastered=0, review_stage=0, user_answer=excluded.user_answer, svg=excluded.svg'
     ).bind(user.id, body.q_key||'', body.level_id||'', body.kp||'', body.error_type||null, now, next, body.user_answer!=null?String(body.user_answer):null, body.svg||null).run();
   }
-  /* correct review answer: advance spaced-repetition stage */
+  /* correct review answer: graduate immediately (remove from active book) */
   if(correct && body.review){
-    var cur = await env.DB.prepare('SELECT review_stage FROM mistakes WHERE user_id=? AND q_key=?').bind(user.id, body.q_key||'').first();
-    if(cur){
-      var stage = (cur.review_stage||0)+1;
-      var intervals=[1,3,7,21]; var days=intervals[Math.min(stage,3)];
-      var rnext = new Date(Date.now()+days*86400000).toISOString();
-      var rmastered = stage>=3?1:0;
-      await env.DB.prepare('UPDATE mistakes SET next_review_at=?, review_stage=?, mastered=? WHERE user_id=? AND q_key=?').bind(rnext, stage, rmastered, user.id, body.q_key||'').run();
-    }
+    await env.DB.prepare(
+      'UPDATE mistakes SET mastered=1, review_stage=review_stage+1 WHERE user_id=? AND q_key=?'
+    ).bind(user.id, body.q_key||'').run();
   }
   return jsonResponse({ ok: true });
 }

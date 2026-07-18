@@ -672,7 +672,7 @@ WCM.ui.startReview = function(){
     var lv = WCM.levelById(due[i].level_id);
     if(!lv) continue;
     seen[due[i].q_key] = true;
-    var q = WCM.generateUnique(lv, seen);
+    var q = WCM.rqGet(due[i].q_key) || WCM.generateUnique(lv, seen);
     queue.push({ level: lv, q: q, originKey: due[i].q_key });
     seen[WCM.qKey(lv, q)] = true;
   }
@@ -774,7 +774,7 @@ WCM.ui.startDailyCheckin = function(){
     var mlv = WCM.levelById(due[j].level_id);
     if(!mlv) continue;
     seen[due[j].q_key] = true;
-    var mq = WCM.generateUnique(mlv, seen);
+    var mq = WCM.rqGet(due[j].q_key) || WCM.generateUnique(mlv, seen);
     queue.push({ level: mlv, q: mq, originKey: due[j].q_key });
     seen[WCM.qKey(mlv,mq)] = true;
   }
