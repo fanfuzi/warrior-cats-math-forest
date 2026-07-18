@@ -17,10 +17,10 @@ WCM.kpMastery = function(kp){
    Target zone: keep success rate in the 70-85% "zone of proximal development". */
 WCM.initialTierForLevel = function(level){
   var m = WCM.kpMastery(level && level.gen);
-  if(m==null) return 1;
-  if(m >= 0.85) return 2;   // strong -> challenge
-  if(m < 0.60) return 0;    // weak -> easing
-  return 1;                 // steady
+  var masteryTier = m==null ? 0 : (m >= 0.85 ? 2 : m < 0.60 ? 0 : 1);
+  var prog = WCM.getProgress(level && level.id);
+  var bestTier = (prog && prog.tier) || 0;
+  return Math.max(masteryTier, bestTier);
 };
 
 /* Mastery percentage (0-100) for display, or null. */

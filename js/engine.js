@@ -1335,12 +1335,13 @@ WCM.setLang = function(l){ WCM.state.lang=l; WCM.lang=l; WCM.saveState(); };
 WCM.setGrade = function(g){ WCM.state.grade=g||0; WCM.saveState(); };
 WCM.setSound = function(on){ WCM.state.sound=on; WCM.saveState(); };
 WCM.addReward = function(preyKey, pts){ WCM.state.prey[preyKey]=(WCM.state.prey[preyKey]||0)+1; WCM.state.points+=pts; WCM.saveState(); };
-WCM.recordLevel = function(id, stars, scoreCorrect){
-  var p=WCM.state.progress[id]||{stars:0,best:0,attempts:0};
+WCM.recordLevel = function(id, stars, scoreCorrect, tier){
+  var p=WCM.state.progress[id]||{stars:0,best:0,attempts:0,tier:0};
   p.attempts++; if(stars>p.stars) p.stars=stars; p.best=Math.max(p.best,scoreCorrect);
+  if(tier!=null && tier>(p.tier||0)) p.tier=tier;
   WCM.state.progress[id]=p; WCM.saveState();
 };
-WCM.getProgress = function(id){ return WCM.state.progress[id]||{stars:0,best:0,attempts:0}; };
+WCM.getProgress = function(id){ return WCM.state.progress[id]||{stars:0,best:0,attempts:0,tier:0}; };
 WCM.totalPrey = function(){ var s=0; var p=WCM.state.prey; for(var k in p) s+=p[k]; return s; };
 WCM.hasBadge = function(regionId){ return WCM.state.badges.indexOf(regionId)!==-1; };
 WCM.awardBadge = function(regionId){

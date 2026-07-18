@@ -482,3 +482,11 @@ body{
 .screen.course-done{ text-align:center; }
 .screen.course-done .cat-hero{ font-size:64px; margin:10px 0; }
 .course-stars{ font-size:34px; color:var(--gold); letter-spacing:4px; margin:8px 0 14px; }
+
+/* ---------- parallel unlock + tier ladder ---------- */
+.lc-ladder{ display:flex; align-items:center; gap:8px; margin:4px 0 2px; font-size:.82em; }
+.lc-ladder .lc-ml{ opacity:.7; }
+.ladder-pips{ display:inline-flex; gap:3px; }
+.ladder-pips .pip{ opacity:.28; font-size:1.05em; }
+.ladder-pips .pip.on{ opacity:1; }
+.lc-lock-hint{ font-size:.82em; opacity:.85; }

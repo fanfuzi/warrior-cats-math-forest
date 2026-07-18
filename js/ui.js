@@ -43,6 +43,7 @@ WCM.ui.render = function(){
 /* ---------- shared bits ---------- */
 function diffStars(n){ var s=''; for(var i=0;i<4;i++) s+= i<n?'★':'☆'; return s; }
 function bestStars(n){ var s=''; for(var i=0;i<3;i++) s+= i<n?'★':'☆'; return s; }
+function ladderPips(best){ var ic=['❄','🌿','🔥']; var s=''; for(var i=0;i<3;i++){ s+='<span class="pip'+(i<=best?' on':'')+'">'+ic[i]+'</span>'; } return s; }
 function praise(){ return WCM.t(pick(['praise1','praise2','praise3','praise4','praise5'])); }
 
 function rankProgress(){
@@ -199,7 +200,7 @@ WCM.ui.renderMap = function(){
     var masteryHtml = mPct!=null ? '<div class="lc-mastery"><span class="lc-ml">'+WCM.t('mastery')+'</span><div class="bar"><div class="bar-fill" style="width:'+mPct+'%"></div></div><span class="lc-mp">'+mPct+'%</span></div>' : '';
     var cls = 'level-card'+(lv.boss?' boss':'')+(locked?' locked':'');
     if(locked){
-      var hint = lv.boss ? WCM.t('lockBoss') : WCM.t('lockLevel');
+      var hint = WCM.levelUnlockHint(lv);
       return '<button class="'+cls+'" data-action="locked-level" data-id="'+lv.id+'">'+
         '<div class="lc-top"><span class="lc-icon">🔒</span></div>'+
         '<div class="lc-name">'+WCM.levelName(lv)+'</div>'+
@@ -211,6 +212,7 @@ WCM.ui.renderMap = function(){
         '<span class="lc-best">'+(prog.stars>0?bestStars(prog.stars):'')+'</span></div>'+
       '<div class="lc-name">'+WCM.levelName(lv)+'</div>'+
       '<div class="lc-diff">'+WCM.t('difficulty')+': '+diffStars(lv.diff)+' <span class="lc-tier">'+WCM.t('tier'+lv.diff)+'</span></div>'+
+      '<div class="lc-ladder"><span class="lc-ml">'+WCM.t('tierLadder')+'</span><span class="ladder-pips">'+ladderPips(prog.tier||0)+'</span></div>'+
       '<div class="lc-desc">'+WCM.t('lvlDesc_'+lv.id)+'</div>'+
       masteryHtml+
     '</button>';
@@ -617,6 +619,7 @@ WCM.ui.gradeCurrent = function(val){
     if(!s.isReview && s.streak<=-3 && s.tier>0){ s.tier--; s.streak=0; }
     WCM.audio.wrong();
   }
+  if(s.tier>(s.maxTier||0)) s.maxTier=s.tier;
   var _dur = s.qStart ? (Date.now()-s.qStart) : null;
   WCM.recordAttempt(lv, q, s.lastCorrect, val, s.tier, _dur);
   if(s.isReview){ var _o=s.reviewOrigins[s.idx]; if(_o) WCM.scheduleReview(_o, s.lastCorrect); }
@@ -647,7 +650,7 @@ WCM.ui.finish = function(){
   var stars = acc>=0.9?3:acc>=0.7?2:acc>=0.5?1:0;
   s.stars=stars;
   if(s.isCourse){ WCM.ui.courseDone = { stars: stars }; WCM.ui.go('courseDone'); return; }
-  if(!s.isReview) WCM.recordLevel(s.level.id, stars, s.correct);
+  if(!s.isReview) WCM.recordLevel(s.level.id, stars, s.correct, s.maxTier||s.tier);
   s.bonus = stars>0 ? stars*5 : 0;
   if(s.bonus>0){ WCM.state.points += s.bonus; WCM.saveState(); }
   if(!s.isReview && s.level.boss && stars>=2){

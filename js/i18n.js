@@ -19,7 +19,7 @@ WCM.I18N = {
     en:"English", "zh-TW":"繁體中文", starsEarned:"Stars Earned", pointsGained:"Points Gained", completeBonus:"Completion Bonus",
     noStars:"Keep training, warrior!",
     mistakeBook:"Mistake Book", reviewTitle:"Mistake Review", startReview:"Start Review Hunt",
-    noMistakes:"No mistakes to review - great job!", dueNow:"Due", yourAnswer:"Your answer", cardAlbum:"Card Album", weakPoints:"Weak Points", mastery:"Mastery", gradeSelect:"Select Your Grade", grade1:"P3-P4 Forest Beginnings", grade2:"P5 Deep Forest", grade3:"P6 Path to StarClan", dailyCheckin:"Daily Hunt", dailyHuntBtn:"Start Daily Hunt", yourGrade:"Grade", aiAnalyze:"AI Mentor Analysis", aiAnalyzing:"Analyzing...", aiNotConfigured:"AI not configured yet", aiLoginRequired:"Please log in to use AI analysis.", aiLoginBtn:"Log In", aiNoData:"Not enough data yet - answer a few questions first!", microLesson:"Micro-lesson", courseRec:"Recommended Micro-lessons", courseLabel:"Micro-lesson", startGuided:"Start Guided Practice", courseHunt:"Consolidation Hunt", courseDone:"Lesson Complete!", courseHint:"Read the steps, then hunt to master it!", cpConcrete:"Concrete", cpPictorial:"Pictorial", cpAbstract:"Abstract",
+    noMistakes:"No mistakes to review - great job!", dueNow:"Due", yourAnswer:"Your answer", cardAlbum:"Card Album", weakPoints:"Weak Points", mastery:"Mastery", gradeSelect:"Select Your Grade", grade1:"P3-P4 Forest Beginnings", grade2:"P5 Deep Forest", grade3:"P6 Path to StarClan", dailyCheckin:"Daily Hunt", dailyHuntBtn:"Start Daily Hunt", yourGrade:"Grade", aiAnalyze:"AI Mentor Analysis", aiAnalyzing:"Analyzing...", aiNotConfigured:"AI not configured yet", aiLoginRequired:"Please log in to use AI analysis.", aiLoginBtn:"Log In", aiNoData:"Not enough data yet - answer a few questions first!", microLesson:"Micro-lesson", courseRec:"Recommended Micro-lessons", courseLabel:"Micro-lesson", startGuided:"Start Guided Practice", courseHunt:"Consolidation Hunt", courseDone:"Lesson Complete!", courseHint:"Read the steps, then hunt to master it!", cpConcrete:"Concrete", cpPictorial:"Pictorial", cpAbstract:"Abstract", unlockStars:"Earn {need}★ to unlock ({have}/{need})", tierLadder:"Difficulty ladder",
     territories:"Forest Territories", chooseTerritory:"Choose a Territory",
     mentor:"Mentor", badges:"Badges", badgeEarned:"Badge Earned!",
     noBadges:"Complete a territory assessment to earn badges.",
@@ -298,7 +298,7 @@ WCM.I18N = {
     en:"English", "zh-TW":"繁體中文", starsEarned:"獲得星星", pointsGained:"獲得積分", completeBonus:"完成獎勵",
     noStars:"繼續訓練，武士！",
     mistakeBook:"錯題本", reviewTitle:"錯題重温", startReview:"開始錯題重温",
-    noMistakes:"沒有錯題需要重温，幹得好！", dueNow:"到期", yourAnswer:"你的答案", cardAlbum:"卡片相冊", weakPoints:"薄弱知識點", mastery:"掌握度", gradeSelect:"選擇你的年級", grade1:"P3-P4 森林初探", grade2:"P5 森林深處", grade3:"P6 星族之路", dailyCheckin:"今日打卡", dailyHuntBtn:"開始今日打卡", yourGrade:"年級", aiAnalyze:"AI 導師分析", aiAnalyzing:"分析中...", aiNotConfigured:"AI 尚未配置", aiLoginRequired:"請先登入才能使用 AI 分析。", aiLoginBtn:"登入", aiNoData:"還沒有足夠數據，先答幾道題吧！", microLesson:"微課", courseRec:"薄弱點微課推薦", courseLabel:"微課", startGuided:"開始引導練習", courseHunt:"鞏固狩獵", courseDone:"學會了！", courseHint:"先看懂步驟，再來一場狩獵徹底掌握！", cpConcrete:"具象", cpPictorial:"圖像", cpAbstract:"抽象",
+    noMistakes:"沒有錯題需要重温，幹得好！", dueNow:"到期", yourAnswer:"你的答案", cardAlbum:"卡片相冊", weakPoints:"薄弱知識點", mastery:"掌握度", gradeSelect:"選擇你的年級", grade1:"P3-P4 森林初探", grade2:"P5 森林深處", grade3:"P6 星族之路", dailyCheckin:"今日打卡", dailyHuntBtn:"開始今日打卡", yourGrade:"年級", aiAnalyze:"AI 導師分析", aiAnalyzing:"分析中...", aiNotConfigured:"AI 尚未配置", aiLoginRequired:"請先登入才能使用 AI 分析。", aiLoginBtn:"登入", aiNoData:"還沒有足夠數據，先答幾道題吧！", microLesson:"微課", courseRec:"薄弱點微課推薦", courseLabel:"微課", startGuided:"開始引導練習", courseHunt:"鞏固狩獵", courseDone:"學會了！", courseHint:"先看懂步驟，再來一場狩獵徹底掌握！", cpConcrete:"具象", cpPictorial:"圖像", cpAbstract:"抽象", unlockStars:"收集 {need} 顆星解鎖（{have}/{need}）", tierLadder:"難度階梯",
     territories:"森林領地", chooseTerritory:"選擇領地",
     mentor:"導師", badges:"徽章", badgeEarned:"獲得徽章！",
     noBadges:"完成領地考核即可獲得徽章。",
@@ -620,19 +620,33 @@ WCM.regionOfLevel = function(lvId){
 };
 
 /* ---------- Level Unlock (progressive learning path) ---------- */
+/* Parallel-by-difficulty unlock: basic (diff 1) levels are always open so
+   several knowledge points can be practised at once; intermediate (diff 2)
+   and advanced (diff 3) open as the warrior earns stars in the region; the
+   boss assessment opens once every non-boss level has been cleared. */
+WCM.levelUnlockStars = function(level){
+  var d = level.diff||1;
+  if(d<=1) return 0;
+  if(d===2) return 2;
+  return 4;
+};
 WCM.isLevelUnlocked = function(level){
   var region = WCM.regionOfLevel(level.id);
   var season = region.season||1;
   if(!WCM.isSeasonUnlocked(season)) return false;
   var levels = WCM.levelsInRegion(region.id);
-  var idx = -1;
-  for(var i=0;i<levels.length;i++){ if(levels[i].id===level.id){ idx=i; break; } }
-  if(idx<=0) return true;
   if(level.boss){
-    for(var j=0;j<idx;j++){ if(WCM.getProgress(levels[j].id).stars<1) return false; }
+    for(var j=0;j<levels.length;j++){ if(!levels[j].boss && WCM.getProgress(levels[j].id).stars<1) return false; }
     return true;
   }
-  return WCM.getProgress(levels[idx-1].id).stars >= 1;
+  return WCM.regionStars(region.id) >= WCM.levelUnlockStars(level);
+};
+WCM.levelUnlockHint = function(level){
+  if(level.boss) return WCM.t('lockBoss');
+  var need = WCM.levelUnlockStars(level);
+  if(need<=0) return WCM.t('lockLevel');
+  var have = WCM.regionStars(WCM.regionOfLevel(level.id).id);
+  return WCM.t('unlockStars').replace(/\{need\}/g, need).replace(/\{have\}/g, have);
 };
 
 /* ---------- Seasons ---------- */
