@@ -674,9 +674,11 @@ WCM.ui.renderMistakes = function(){
     var disp = m.display || '';
     var ua = (m.user_answer!=null && m.user_answer!=='') ? m.user_answer : '—';
     var ca = m.correct_answer || '';
+    var svgHtml = m.svg ? '<div class="q-svg">'+m.svg+'</div>' : '';
     return '<div class="card-row mistake-item"><span class="cr-icon">'+icon+'</span>'+
       '<div class="cr-body"><div class="cr-name">'+name+'</div>'+
       (disp?'<div class="cr-q">'+disp+'</div>':'')+
+      svgHtml+
       '<div class="cr-ans"><span class="wrong-ans">'+WCM.t('yourAnswer')+': '+ua+'</span>'+
       '<span class="right-ans">'+WCM.t('correctAnswer')+': '+ca+'</span></div>'+
       '<div class="cr-meta">'+WCM.t('dueNow')+': '+dueTxt+' · ×'+(m.wrong_count||1)+'</div></div></div>';

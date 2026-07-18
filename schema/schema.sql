@@ -62,6 +62,7 @@ CREATE TABLE IF NOT EXISTS mistakes (
   mastered       INTEGER DEFAULT 0,
   review_stage   INTEGER DEFAULT 0,
   user_answer    TEXT,
+  svg            TEXT,
   PRIMARY KEY (user_id, q_key)
 );
 

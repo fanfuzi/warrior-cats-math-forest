@@ -1,5 +1,5 @@
 /* Warrior Cats Math Forest - service worker (offline shell) */
-var CACHE = 'wcm-v11';
+var CACHE = 'wcm-v12';
 var ASSETS = ['./','./index.html','./css/style.css','./js/i18n.js','./js/visual.js','./js/engine.js','./js/mistakes.js','./js/auth.js','./js/ui.js','./js/app.js','./manifest.webmanifest','./assets/icon.svg'];
 self.addEventListener('install', function(e){ e.waitUntil(caches.open(CACHE).then(function(c){ return c.addAll(ASSETS); })); self.skipWaiting(); });
 self.addEventListener('activate', function(e){ e.waitUntil(caches.keys().then(function(ks){ return Promise.all(ks.filter(function(k){return k!==CACHE;}).map(function(k){return caches.delete(k);})); })); self.clients.claim(); });

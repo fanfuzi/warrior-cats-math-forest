@@ -453,3 +453,7 @@ body{
 .card-row .cr-ans { font-size:.85em; margin:2px 0; display:flex; gap:12px; flex-wrap:wrap; }
 .card-row .wrong-ans { color:#ff8a80; }
 .card-row .right-ans { color:#b9f6ca; }
+
+/* mistake-item svg (original figure) */
+.mistake-item .q-svg { margin:4px 0; }
+.mistake-item .q-svg svg { max-width:130px; max-height:130px; }

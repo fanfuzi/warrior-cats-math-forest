@@ -1384,7 +1384,8 @@ WCM.recordAttempt = function(level, q, correct, userAnswer, tier, durationMs){
     user_answer: userAnswer!=null ? String(userAnswer) : null,
     correct_answer: q.answer!=null ? String(q.answer) : null,
     tier: tier!=null ? tier : null,
-    duration_ms: durationMs!=null ? durationMs : null
+    duration_ms: durationMs!=null ? durationMs : null,
+    svg: q.svg || null
   };
   if(!WCM.state.attemptsCache) WCM.state.attemptsCache = [];
   WCM.state.attemptsCache.push(rec);
@@ -1394,7 +1395,7 @@ WCM.recordAttempt = function(level, q, correct, userAnswer, tier, durationMs){
     var k = rec.q_key;
     var m = WCM.state.mistakesMirror[k] || { level_id: rec.level_id, kp: rec.kp, wrong_count: 0, next_review_at: new Date(Date.now()+86400000).toISOString() };
     m.wrong_count++; m.next_review_at = new Date(Date.now()+86400000).toISOString(); m.mastered = 0;
-    m.display = q.display; m.user_answer = rec.user_answer; m.correct_answer = rec.correct_answer; m.level_id = rec.level_id;
+    m.display = q.display; m.user_answer = rec.user_answer; m.correct_answer = rec.correct_answer; m.level_id = rec.level_id; m.svg = q.svg || null;
     WCM.state.mistakesMirror[k] = m;
   }
   WCM.saveLocal();
