@@ -73,7 +73,7 @@ WCM.restoreSession = function(){
     if(res && res.user){
       WCM.auth.email = res.user.email;
       WCM.setAuth(WCM.auth);
-      return WCM.cloudPull().then(function(){ return true; });
+      return WCM.cloudPull().then(function(){ WCM.syncLearningMirror(); return true; });
     }
     WCM.setAuth(null);
     return false;
@@ -81,4 +81,19 @@ WCM.restoreSession = function(){
     WCM.setAuth(null);
     return false;
   });
+};
+
+/* ============ LEARNING DATA SYNC ============ */
+/* Pull mistake-book mirror + weak points from cloud (best-effort, for offline UI). */
+WCM.syncLearningMirror = function(){
+  if(!WCM.isLoggedIn()) return;
+  WCM.api('attempts', 'GET').then(function(res){
+    if(res && !res.error){
+      var m = {};
+      (res.mistakes||[]).forEach(function(row){ m[row.q_key] = row; });
+      WCM.state.mistakesMirror = m;
+      WCM.state.weakPoints = res.weakPoints || [];
+      WCM.saveLocal();
+    }
+  }).catch(function(){});
 };

@@ -258,7 +258,7 @@ WCM.ui.startLevel = function(level){
   var seenKeys = {}; seenKeys[WCM.qKey(level, q)] = true;
   WCM.ui.session = { level:level, total:n, questions:[q], idx:0, correct:0, gainedPts:0, gainedPrey:{},
     tier:1, streak:0, hintShown:false, answered:false, input:'', selected:null,
-    seenKeys:seenKeys, startRankIdx:WCM.rankIndexAt(WCM.state.points), badgeEarned:false };
+    seenKeys:seenKeys, startRankIdx:WCM.rankIndexAt(WCM.state.points), badgeEarned:false, qStart:Date.now() };
   WCM.ui.go('level');
 };
 
@@ -577,6 +577,8 @@ WCM.ui.gradeCurrent = function(val){
     if(s.streak<=-3 && s.tier>0){ s.tier--; s.streak=0; }
     WCM.audio.wrong();
   }
+  var _dur = s.qStart ? (Date.now()-s.qStart) : null;
+  WCM.recordAttempt(s.level, q, s.lastCorrect, val, s.tier, _dur);
   WCM.ui.render();
 };
 
@@ -587,7 +589,7 @@ WCM.ui.next = function(){
   var q = WCM.generateUnique(s.level, s.seenKeys);
   s.seenKeys[WCM.qKey(s.level, q)] = true;
   s.questions.push(q);
-  s.answered=false; s.input=''; s.hintShown=false; s.selected=null;
+  s.answered=false; s.input=''; s.hintShown=false; s.selected=null; s.qStart=Date.now();
   WCM.ui.render();
 };
 

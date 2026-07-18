@@ -6,3 +6,9 @@ pages_build_output_dir = "."
 binding = "DB"
 database_name = "wcm-db"
 database_id = "90f9d347-3a3a-483a-b16f-642772378031"
+
+[vars]
+AI_BASE_URL = "https://api.openai.com/v1"
+AI_MODEL = "gpt-4o-mini"
+# AI_API_KEY is a secret - set it with: wrangler secret put AI_API_KEY
+# Any OpenAI-compatible endpoint works (OpenAI, DeepSeek, Moonshot, Ollama /v1, CF AI Gateway).

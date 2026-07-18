@@ -1225,7 +1225,7 @@ WCM.defaultState = function(){
     prey:{mouse:0,vole:0,squirrel:0,thrush:0,fish:0,rabbit:0}, progress:{}, achievements:[], badges:[],
     daily:{date:'',tasks:[false,false,false],claimed:false,correctToday:0,huntsToday:0},
     streak:{count:0,lastDate:''},
-    visited:{}, cards:[], mastered:{} };
+    visited:{}, cards:[], mastered:{}, attemptsCache:[], mistakesMirror:{}, weakPoints:[] };
 };
 WCM.loadState = function(){
   try{ var s=JSON.parse(localStorage.getItem(WCM.KEY)); if(s){
@@ -1241,6 +1241,9 @@ WCM.loadState = function(){
     s.visited = s.visited||{};
     s.cards = s.cards||[];
     s.mastered = s.mastered||{};
+    s.attemptsCache = s.attemptsCache||[];
+    s.mistakesMirror = s.mistakesMirror||{};
+    s.weakPoints = s.weakPoints||[];
     return s;
   } }catch(e){}
   return WCM.defaultState();
@@ -1365,3 +1368,38 @@ WCM.audio = (function(){
 })();
 WCM.saveLocal = function(){ try{ localStorage.setItem(WCM.KEY, JSON.stringify(WCM.state)); }catch(e){} };
 WCM.saveState = function(){ WCM.saveLocal(); if(WCM.cloudPush) WCM.cloudPush(); };
+
+/* ---------- attempt recording (Phase A: mistake book + weak points) ---------- */
+WCM.recordAttempt = function(level, q, correct, userAnswer, tier, durationMs){
+  if(!level || !q) return;
+  var region = WCM.regionOfLevel(level.id);
+  var season = region ? region.season : 0;
+  var rec = {
+    level_id: level.id,
+    region: level.region || (region?region.id:''),
+    season: season,
+    kp: level.gen || '',
+    q_key: WCM.qKey(level, q),
+    correct: correct ? 1 : 0,
+    user_answer: userAnswer!=null ? String(userAnswer) : null,
+    correct_answer: q.answer!=null ? String(q.answer) : null,
+    tier: tier!=null ? tier : null,
+    duration_ms: durationMs!=null ? durationMs : null
+  };
+  if(!WCM.state.attemptsCache) WCM.state.attemptsCache = [];
+  WCM.state.attemptsCache.push(rec);
+  if(WCM.state.attemptsCache.length > 80) WCM.state.attemptsCache.shift();
+  if(!correct){
+    if(!WCM.state.mistakesMirror) WCM.state.mistakesMirror = {};
+    var k = rec.q_key;
+    var m = WCM.state.mistakesMirror[k] || { level_id: rec.level_id, kp: rec.kp, wrong_count: 0, next_review_at: new Date(Date.now()+86400000).toISOString() };
+    m.wrong_count++; m.next_review_at = new Date(Date.now()+86400000).toISOString(); m.mastered = 0;
+    WCM.state.mistakesMirror[k] = m;
+  }
+  WCM.saveLocal();
+  if(WCM.isLoggedIn && WCM.isLoggedIn()){
+    WCM.api('attempts', 'POST', rec).then(function(r){
+      if(r && r.error === 'Unauthorized'){ /* session expired - keep local */ }
+    }).catch(function(){ /* offline - keep local */ });
+  }
+};
