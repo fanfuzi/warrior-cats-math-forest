@@ -1221,7 +1221,7 @@ WCM.generateUnique = function(level, extraAvoid){
 /* ================ STATE & STORAGE ================ */
 WCM.KEY = 'wcm_save_v1';
 WCM.defaultState = function(){
-  return { profile:'Yaoyao', lang:'en', sound:true, points:0,
+  return { profile:'Yaoyao', lang:'en', sound:true, points:0, grade:0,
     prey:{mouse:0,vole:0,squirrel:0,thrush:0,fish:0,rabbit:0}, progress:{}, achievements:[], badges:[],
     daily:{date:'',tasks:[false,false,false],claimed:false,correctToday:0,huntsToday:0},
     streak:{count:0,lastDate:''},
@@ -1244,6 +1244,7 @@ WCM.loadState = function(){
     s.attemptsCache = s.attemptsCache||[];
     s.mistakesMirror = s.mistakesMirror||{};
     s.weakPoints = s.weakPoints||[];
+    s.grade = s.grade||0;
     return s;
   } }catch(e){}
   return WCM.defaultState();
@@ -1331,6 +1332,7 @@ WCM.state = WCM.loadState();
 WCM.lang = WCM.state.lang;
 
 WCM.setLang = function(l){ WCM.state.lang=l; WCM.lang=l; WCM.saveState(); };
+WCM.setGrade = function(g){ WCM.state.grade=g||0; WCM.saveState(); };
 WCM.setSound = function(on){ WCM.state.sound=on; WCM.saveState(); };
 WCM.addReward = function(preyKey, pts){ WCM.state.prey[preyKey]=(WCM.state.prey[preyKey]||0)+1; WCM.state.points+=pts; WCM.saveState(); };
 WCM.recordLevel = function(id, stars, scoreCorrect){

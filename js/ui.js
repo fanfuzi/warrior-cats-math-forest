@@ -32,6 +32,7 @@ WCM.ui.render = function(){
     case 'cardview': el.innerHTML = WCM.ui.renderCardView(); break;
     case 'auth': el.innerHTML = WCM.ui.renderAuth(); break;
     case 'mistakes': el.innerHTML = WCM.ui.renderMistakes(); break;
+    case 'grade': el.innerHTML = WCM.ui.renderGrade(); break;
     default: el.innerHTML = WCM.ui.renderHome();
   }
   window.scrollTo(0,0);
@@ -134,6 +135,7 @@ WCM.ui.renderHome = function(){
     '</div>'+
     WCM.ui.renderDaily()+
     '<div class="actions">'+
+      (WCM.state.grade ? '<button class="btn primary big" data-action="daily-checkin">🎯 '+WCM.t('dailyHuntBtn')+'</button>' : '<button class="btn primary big" data-action="grade">🎯 '+WCM.t('gradeSelect')+'</button>')+
       '<button class="btn primary big" data-action="play">▶ '+WCM.t('play')+'</button>'+
       '<button class="btn" data-action="settings">⚙ '+WCM.t('settings')+'</button>'+
       '<button class="btn" data-action="cards">🃏 '+WCM.t('cardAlbum')+' ('+WCM.cardCount()+'/'+WCM.CARDS.length+')</button>'+
@@ -278,7 +280,7 @@ WCM.ui.renderLevel = function(){
   var tierChip='<span class="lvl-tier tier-'+s.tier+'">'+tierIcons[s.tier]+' '+tierLabels[s.tier]+'</span>';
   var _lv = s.curLevel || s.level;
   var _back = s.isReview ? 'home' : 'map';
-  var _title = s.isReview ? (WCM.t('reviewTitle')+' · '+WCM.levelName(_lv)) : (_lv.icon+' '+WCM.levelName(_lv));
+  var _title = s.isDaily ? WCM.t('dailyCheckin') : (s.isReview ? (WCM.t('reviewTitle')+' · '+WCM.levelName(_lv)) : (_lv.icon+' '+WCM.levelName(_lv)));
   var head = '<div class="lvl-head"><button class="icon-btn" data-action="'+_back+'">‹</button>'+
     '<div class="lvl-title">'+_title+'</div>'+
     '<div class="lvl-prog">'+progTxt+'</div></div>'+
@@ -535,6 +537,9 @@ WCM.ui.handleClick = function(e){
     case 'cards': WCM.audio.click(); WCM.ui.go('cards'); break;
     case 'mistakes': WCM.audio.click(); WCM.ui.go('mistakes'); break;
     case 'review': WCM.audio.click(); WCM.ui.startReview(); break;
+    case 'grade': WCM.audio.click(); WCM.ui.go('grade'); break;
+    case 'set-grade': WCM.audio.click(); WCM.setGrade(parseInt(node.getAttribute('data-grade'),10)||1); WCM.ui.go('home'); break;
+    case 'daily-checkin': WCM.audio.click(); WCM.ui.startDailyCheckin(); break;
     case 'view-card': WCM.ui.viewCardId = node.getAttribute('data-id'); WCM.audio.click(); WCM.ui.go('cardview'); break;
     case 'sound-on': WCM.setSound(true); WCM.audio.click(); WCM.ui.render(); break;
     case 'sound-off': WCM.setSound(false); WCM.ui.render(); break;
@@ -706,4 +711,60 @@ WCM.ui.renderMistakes = function(){
       listHtml+
       (wp.length ? '<h3>🎯 '+WCM.t('weakPoints')+'</h3>'+wpHtml : '')+
     '</div></div>';
+};
+
+/* ---------- grade selection & daily check-in (Phase D) ---------- */
+WCM.ui.renderGrade = function(){
+  var zh = WCM.lang==='zh-TW';
+  var opts = [1,2,3].map(function(s){
+    return '<button class="btn big" data-action="set-grade" data-grade="'+s+'">'+WCM.t('grade'+s)+'</button>';
+  }).join('');
+  return '<div class="screen grade"><div class="forest-bg"></div>'+
+    '<div class="content">'+
+      '<h2>🎯 '+WCM.t('gradeSelect')+'</h2>'+
+      '<p class="story-intro">'+(zh?'選擇年級後，每日打卡會按你的年級出題，錯題也會編入複習。':'Pick your grade and daily hunts will be tailored to it, with your mistakes woven into review.')+'</p>'+
+      opts+
+      (WCM.state.grade ? '<button class="btn ghost" data-action="home">'+WCM.t('back')+'</button>' : '')+
+    '</div></div>';
+};
+
+/* Daily check-in: 5 fresh questions from the current grade's unlocked levels
+   (adaptive via generateUnique) + up to 2 due mistakes as review. Reuses the
+   review-session machinery (curLevel/reviewOrigins) so new questions have
+   originKey=null (no scheduleReview) and due mistakes advance their schedule. */
+WCM.ui.startDailyCheckin = function(){
+  var season = WCM.state.grade || 1;
+  var pool = [];
+  WCM.REGIONS.forEach(function(r){
+    if(r.season !== season) return;
+    r.levels.forEach(function(lid){
+      var lv = WCM.levelById(lid);
+      if(lv && !lv.boss) pool.push(lv);
+    });
+  });
+  if(!pool.length){ WCM.ui.toast(WCM.t('lockLevel')); return; }
+  var queue = [], seen = {};
+  for(var i=0;i<5;i++){
+    var lv = pool[Math.floor(Math.random()*pool.length)];
+    var q = WCM.generateUnique(lv, seen);
+    queue.push({ level: lv, q: q, originKey: null });
+    seen[WCM.qKey(lv,q)] = true;
+  }
+  var due = WCM.getDueMistakes ? WCM.getDueMistakes() : [];
+  for(var j=0;j<due.length && queue.length<7;j++){
+    var mlv = WCM.levelById(due[j].level_id);
+    if(!mlv) continue;
+    seen[due[j].q_key] = true;
+    var mq = WCM.generateUnique(mlv, seen);
+    queue.push({ level: mlv, q: mq, originKey: due[j].q_key });
+    seen[WCM.qKey(mlv,mq)] = true;
+  }
+  WCM.ui.session = {
+    isReview: true, isDaily: true, reviewQueue: queue, reviewOrigins: [queue[0].originKey],
+    questions: [queue[0].q], curLevel: queue[0].level, level: queue[0].level,
+    idx:0, total: queue.length, correct:0, gainedPts:0, gainedPrey:{},
+    tier:1, streak:0, hintShown:false, answered:false, input:'', selected:null,
+    seenKeys: seen, startRankIdx: WCM.rankIndexAt(WCM.state.points), badgeEarned:false, qStart: Date.now()
+  };
+  WCM.ui.go('level');
 };
