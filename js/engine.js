@@ -1394,6 +1394,7 @@ WCM.recordAttempt = function(level, q, correct, userAnswer, tier, durationMs){
     var k = rec.q_key;
     var m = WCM.state.mistakesMirror[k] || { level_id: rec.level_id, kp: rec.kp, wrong_count: 0, next_review_at: new Date(Date.now()+86400000).toISOString() };
     m.wrong_count++; m.next_review_at = new Date(Date.now()+86400000).toISOString(); m.mastered = 0;
+    m.display = q.display; m.user_answer = rec.user_answer; m.correct_answer = rec.correct_answer; m.level_id = rec.level_id;
     WCM.state.mistakesMirror[k] = m;
   }
   WCM.saveLocal();

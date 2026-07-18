@@ -18,6 +18,20 @@ WCM.getDueMistakes = function(){
   return out;
 };
 
+/* All active (non-mastered) mistakes, due first. Display/answer backfilled from q_key. */
+WCM.getAllMistakes = function(){
+  var m = WCM.state.mistakesMirror || {};
+  var out = [];
+  for(var k in m){
+    var row = m[k];
+    if(row.mastered) continue;
+    if(!row.display){ var p=(k||'').split('|'); if(p.length>=3){ row.display=p.slice(1,-1).join('|'); if(!row.correct_answer) row.correct_answer=p[p.length-1]; } }
+    out.push(row);
+  }
+  out.sort(function(a,b){ return (a.next_review_at||'') < (b.next_review_at||'') ? -1 : 1; });
+  return out;
+};
+
 /* Count of active (non-mastered) mistakes. */
 WCM.mistakeCount = function(){
   var m = WCM.state.mistakesMirror || {}; var n = 0;

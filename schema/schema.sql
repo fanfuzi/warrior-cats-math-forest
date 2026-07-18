@@ -61,6 +61,7 @@ CREATE TABLE IF NOT EXISTS mistakes (
   next_review_at TEXT NOT NULL,
   mastered       INTEGER DEFAULT 0,
   review_stage   INTEGER DEFAULT 0,
+  user_answer    TEXT,
   PRIMARY KEY (user_id, q_key)
 );
 

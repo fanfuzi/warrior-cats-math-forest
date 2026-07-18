@@ -30,10 +30,10 @@ export async function onRequestPost(context){
   if(!correct){
     var next = new Date(Date.now() + 24*60*60*1000).toISOString();
     await env.DB.prepare(
-      'INSERT INTO mistakes (user_id,q_key,level_id,kp,error_type,wrong_count,last_wrong_at,next_review_at,mastered,review_stage) ' +
-      'VALUES (?,?,?,?,?,1,?,?,0,0) ' +
-      'ON CONFLICT(user_id,q_key) DO UPDATE SET wrong_count=mistakes.wrong_count+1, last_wrong_at=excluded.last_wrong_at, next_review_at=excluded.next_review_at, mastered=0, review_stage=0'
-    ).bind(user.id, body.q_key||'', body.level_id||'', body.kp||'', body.error_type||null, now, next).run();
+      'INSERT INTO mistakes (user_id,q_key,level_id,kp,error_type,wrong_count,last_wrong_at,next_review_at,mastered,review_stage,user_answer) ' +
+      'VALUES (?,?,?,?,?,1,?,?,0,0,?) ' +
+      'ON CONFLICT(user_id,q_key) DO UPDATE SET wrong_count=mistakes.wrong_count+1, last_wrong_at=excluded.last_wrong_at, next_review_at=excluded.next_review_at, mastered=0, review_stage=0, user_answer=excluded.user_answer'
+    ).bind(user.id, body.q_key||'', body.level_id||'', body.kp||'', body.error_type||null, now, next, body.user_answer!=null?String(body.user_answer):null).run();
   }
   /* correct review answer: advance spaced-repetition stage */
   if(correct && body.review){
@@ -55,7 +55,7 @@ export async function onRequestGet(context){
   var user = await getUserFromRequest(request, env);
   if(!user) return jsonResponse({ error: 'Unauthorized' }, 401);
   var mistakes = await env.DB.prepare(
-    'SELECT q_key,level_id,kp,error_type,wrong_count,last_wrong_at,next_review_at,mastered,review_stage FROM mistakes WHERE user_id=? AND mastered=0'
+    'SELECT q_key,level_id,kp,error_type,wrong_count,last_wrong_at,next_review_at,mastered,review_stage,user_answer FROM mistakes WHERE user_id=? AND mastered=0'
   ).bind(user.id).all();
   var weak = await env.DB.prepare(
     'SELECT kp,season,attempts,correct,mastery_rate,ai_summary,ai_updated_at FROM weak_points WHERE user_id=?'

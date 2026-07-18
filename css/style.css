@@ -445,3 +445,11 @@ body{
 .card-row .cr-name { flex:1; }
 .card-row .cr-meta { font-size:.85em; opacity:.8; white-space:nowrap; }
 .card-row .bar { flex:1; height:8px; background:rgba(0,0,0,.25); border-radius:4px; overflow:hidden; }
+
+/* ---------- mistake detail rows ---------- */
+.mistake-item { align-items: flex-start; }
+.card-row .cr-body { flex:1; min-width:0; }
+.card-row .cr-q { font-size:1.05em; margin:2px 0; word-break:break-word; }
+.card-row .cr-ans { font-size:.85em; margin:2px 0; display:flex; gap:12px; flex-wrap:wrap; }
+.card-row .wrong-ans { color:#ff8a80; }
+.card-row .right-ans { color:#b9f6ca; }

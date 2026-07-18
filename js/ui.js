@@ -638,7 +638,7 @@ WCM.ui.finish = function(){
 
 /* ---------- mistake book & review hunt (Phase B) ---------- */
 WCM.ui.startReview = function(){
-  var due = WCM.getDueMistakes();
+  var due = WCM.getAllMistakes();
   if(!due.length){ WCM.ui.toast(WCM.t('noMistakes')); return; }
   var queue = [], seen = {};
   for(var i=0;i<due.length && queue.length<5;i++){
@@ -661,24 +661,26 @@ WCM.ui.startReview = function(){
 };
 
 WCM.ui.renderMistakes = function(){
-  var due = WCM.getDueMistakes();
-  var all = WCM.state.mistakesMirror || {};
-  var active = [];
-  for(var k in all) if(!all[k].mastered) active.push(all[k]);
+  var active = WCM.getAllMistakes();
   var wp = WCM.weakPointsSorted();
-  var dueHtml = due.length
-    ? '<button class="btn primary big" data-action="review">▶ '+WCM.t('startReview')+' ('+due.length+')</button>'
+  var reviewHtml = active.length
+    ? '<button class="btn primary big" data-action="review">▶ '+WCM.t('startReview')+' ('+active.length+')</button>'
     : '<div class="daily-done-msg">'+WCM.t('noMistakes')+'</div>';
   var listHtml = active.map(function(m){
     var lv = WCM.levelById(m.level_id);
     var name = lv ? WCM.levelName(lv) : (m.kp||'?');
     var icon = lv ? lv.icon : '📝';
     var dueTxt = m.next_review_at ? new Date(m.next_review_at).toLocaleDateString() : '-';
-    return '<div class="card-row"><span class="cr-icon">'+icon+'</span>'+
-      '<span class="cr-name">'+name+'</span>'+
-      '<span class="cr-meta">×'+(m.wrong_count||1)+'</span>'+
-      '<span class="cr-meta">'+WCM.t('dueNow')+': '+dueTxt+'</span></div>';
-  }).join('') || '<div class="daily-done-msg">'+WCM.t('noMistakes')+'</div>';
+    var disp = m.display || '';
+    var ua = (m.user_answer!=null && m.user_answer!=='') ? m.user_answer : '—';
+    var ca = m.correct_answer || '';
+    return '<div class="card-row mistake-item"><span class="cr-icon">'+icon+'</span>'+
+      '<div class="cr-body"><div class="cr-name">'+name+'</div>'+
+      (disp?'<div class="cr-q">'+disp+'</div>':'')+
+      '<div class="cr-ans"><span class="wrong-ans">'+WCM.t('yourAnswer')+': '+ua+'</span>'+
+      '<span class="right-ans">'+WCM.t('correctAnswer')+': '+ca+'</span></div>'+
+      '<div class="cr-meta">'+WCM.t('dueNow')+': '+dueTxt+' · ×'+(m.wrong_count||1)+'</div></div></div>';
+  }).join('');
   var wpHtml = wp.slice(0,6).map(function(p){
     var pct = Math.round((p.mastery_rate||0)*100);
     var lv = WCM.levelById(p.kp);
@@ -693,7 +695,7 @@ WCM.ui.renderMistakes = function(){
     statusBar()+
     '<div class="content">'+
       '<h2>📖 '+WCM.t('mistakeBook')+'</h2>'+
-      dueHtml+
+      reviewHtml+
       '<h3>📋 '+WCM.t('mistakeBook')+' ('+active.length+')</h3>'+
       listHtml+
       (wp.length ? '<h3>🎯 '+WCM.t('weakPoints')+'</h3>'+wpHtml : '')+

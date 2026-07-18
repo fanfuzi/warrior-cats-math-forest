@@ -90,7 +90,12 @@ WCM.syncLearningMirror = function(){
   WCM.api('attempts', 'GET').then(function(res){
     if(res && !res.error){
       var m = {};
-      (res.mistakes||[]).forEach(function(row){ m[row.q_key] = row; });
+      (res.mistakes||[]).forEach(function(row){
+        var parts = (row.q_key||'').split('|');
+        if(!row.display && parts.length>=3) row.display = parts.slice(1,-1).join('|');
+        if(!row.correct_answer && parts.length>=3) row.correct_answer = parts[parts.length-1];
+        m[row.q_key] = row;
+      });
       WCM.state.mistakesMirror = m;
       WCM.state.weakPoints = res.weakPoints || [];
       WCM.saveLocal();
