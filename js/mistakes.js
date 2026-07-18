@@ -74,3 +74,27 @@ WCM.weakPointsSorted = function(){
   var wp = WCM.state.weakPoints || [];
   return wp.slice().sort(function(a,b){ return (a.mastery_rate||0) - (b.mastery_rate||0); });
 };
+
+/* Build a compact summary of the local mistake book for AI analysis.
+   Groups active mistakes by knowledge point with up to 3 sample questions
+   (question text, the student's wrong answer, the correct answer) each. */
+WCM.buildAiPayload = function(){
+  var all = WCM.getAllMistakes();
+  var byKp = {};
+  var order = [];
+  for(var i=0;i<all.length;i++){
+    var row = all[i];
+    var kp = row.kp || 'other';
+    if(!byKp[kp]){ byKp[kp] = { kp: kp, wrong: 0, samples: [] }; order.push(kp); }
+    byKp[kp].wrong += (row.wrong_count||1);
+    if(byKp[kp].samples.length < 3){
+      byKp[kp].samples.push({
+        q: row.display || '',
+        your: row.user_answer!=null ? String(row.user_answer) : '',
+        ans: row.correct_answer!=null ? String(row.correct_answer) : ''
+      });
+    }
+  }
+  var points = order.map(function(k){ return byKp[k]; });
+  return { mistakes: points, count: all.length };
+};

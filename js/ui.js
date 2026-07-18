@@ -542,11 +542,17 @@ WCM.ui.handleClick = function(e){
     case 'daily-checkin': WCM.audio.click(); WCM.ui.startDailyCheckin(); break;
     case 'ai-summary':
       WCM.audio.click();
+      if(!WCM.isLoggedIn()){
+        WCM.ui.aiText = WCM.t('aiLoginRequired')+' <button class="btn ghost small" data-action="auth">🔑 '+WCM.t('aiLoginBtn')+'</button>';
+        WCM.ui.render();
+        break;
+      }
       WCM.ui.aiText = WCM.t('aiAnalyzing');
       WCM.ui.render();
-      WCM.api('ai-summary','POST').then(function(res){
+      WCM.api('ai-summary','POST', WCM.buildAiPayload()).then(function(res){
         if(res && res.configured===false){ WCM.ui.aiText = WCM.t('aiNotConfigured'); }
         else if(res && res.summaries && res.summaries.length){ WCM.ui.aiText = res.summaries[0].text; WCM.syncLearningMirror(); }
+        else if(res && res.note){ WCM.ui.aiText = WCM.t('aiNoData'); }
         else if(res && res.error){ WCM.ui.aiText = res.error; }
         else { WCM.ui.aiText = WCM.t('noMistakes'); }
         WCM.ui.render();
