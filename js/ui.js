@@ -1,6 +1,6 @@
 /* Warrior Cats Math Forest - UI rendering & interaction */
 window.WCM = window.WCM || {};
-WCM.ui = { screen:'home', session:null, currentRegion:null };
+WCM.ui = { screen:'home', session:null, currentRegion:null, authMode:'login', authError:'' };
 
 WCM.ui.go = function(screen){ WCM.ui.screen = screen; WCM.ui.render(); };
 
@@ -615,4 +615,3 @@ WCM.ui.finish = function(){
   else WCM.audio.star();
   WCM.ui.go('reward');
 };
-WCM.ui = { screen:'home', session:null, currentRegion:null, authMode:'login', authError:'' };
