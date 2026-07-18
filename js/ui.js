@@ -191,6 +191,8 @@ WCM.ui.renderMap = function(){
   var cards = levels.map(function(lv){
     var prog = WCM.getProgress(lv.id);
     var locked = !WCM.isLevelUnlocked(lv);
+    var mPct = WCM.masteryPct ? WCM.masteryPct(lv) : null;
+    var masteryHtml = mPct!=null ? '<div class="lc-mastery"><span class="lc-ml">'+WCM.t('mastery')+'</span><div class="bar"><div class="bar-fill" style="width:'+mPct+'%"></div></div><span class="lc-mp">'+mPct+'%</span></div>' : '';
     var cls = 'level-card'+(lv.boss?' boss':'')+(locked?' locked':'');
     if(locked){
       var hint = lv.boss ? WCM.t('lockBoss') : WCM.t('lockLevel');
@@ -206,6 +208,7 @@ WCM.ui.renderMap = function(){
       '<div class="lc-name">'+WCM.levelName(lv)+'</div>'+
       '<div class="lc-diff">'+WCM.t('difficulty')+': '+diffStars(lv.diff)+' <span class="lc-tier">'+WCM.t('tier'+lv.diff)+'</span></div>'+
       '<div class="lc-desc">'+WCM.t('lvlDesc_'+lv.id)+'</div>'+
+      masteryHtml+
     '</button>';
   }).join('');
   return '<div class="screen map">'+
@@ -255,11 +258,12 @@ WCM.ui.renderStory = function(){
 WCM.ui.startLevel = function(level){
   WCM.trackPractice();
   var n = level.boss ? WCM.QCOUNT.boss : WCM.QCOUNT.normal;
-  WCM.setGenTier(1);
+  var _t = WCM.initialTierForLevel ? WCM.initialTierForLevel(level) : 1;
+  WCM.setGenTier(_t);
   var q = WCM.generateUnique(level);
   var seenKeys = {}; seenKeys[WCM.qKey(level, q)] = true;
   WCM.ui.session = { level:level, total:n, questions:[q], idx:0, correct:0, gainedPts:0, gainedPrey:{},
-    tier:1, streak:0, hintShown:false, answered:false, input:'', selected:null,
+    tier:_t, streak:0, hintShown:false, answered:false, input:'', selected:null,
     seenKeys:seenKeys, startRankIdx:WCM.rankIndexAt(WCM.state.points), badgeEarned:false, qStart:Date.now() };
   WCM.ui.go('level');
 };

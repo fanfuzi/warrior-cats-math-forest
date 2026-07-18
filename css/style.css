@@ -457,3 +457,9 @@ body{
 /* mistake-item svg (original figure) */
 .mistake-item .q-svg { margin:4px 0; }
 .mistake-item .q-svg svg { max-width:130px; max-height:130px; }
+
+/* level-card mastery bar (Phase C) */
+.lc-mastery { display:flex; align-items:center; gap:6px; margin-top:6px; font-size:.8em; }
+.lc-mastery .lc-ml { opacity:.8; white-space:nowrap; }
+.lc-mastery .bar { flex:1; height:6px; background:rgba(0,0,0,.25); border-radius:3px; overflow:hidden; }
+.lc-mastery .lc-mp { opacity:.8; white-space:nowrap; }
