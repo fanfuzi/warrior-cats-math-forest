@@ -1363,3 +1363,5 @@ WCM.audio = (function(){
     levelup: function(){ [523,659,784,1047].forEach(function(f,i){ setTimeout(function(){beep(f,0.18,'triangle',0.18);}, i*140); }); }
   };
 })();
+WCM.saveLocal = function(){ try{ localStorage.setItem(WCM.KEY, JSON.stringify(WCM.state)); }catch(e){} };
+WCM.saveState = function(){ WCM.saveLocal(); if(WCM.cloudPush) WCM.cloudPush(); };

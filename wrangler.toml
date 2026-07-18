@@ -1,0 +1,8 @@
+name = "warrior-cats-math-forest"
+compatibility_date = "2024-09-01"
+pages_build_output_dir = "."
+
+[[d1_databases]]
+binding = "DB"
+database_name = "wcm-db"
+database_id = "90f9d347-3a3a-483a-b16f-642772378031"

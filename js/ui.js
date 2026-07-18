@@ -30,6 +30,7 @@ WCM.ui.render = function(){
     case 'settings': el.innerHTML = WCM.ui.renderSettings(); break;
     case 'cards': el.innerHTML = WCM.ui.renderCards(); break;
     case 'cardview': el.innerHTML = WCM.ui.renderCardView(); break;
+    case 'auth': el.innerHTML = WCM.ui.renderAuth(); break;
     default: el.innerHTML = WCM.ui.renderHome();
   }
   window.scrollTo(0,0);
@@ -137,6 +138,9 @@ WCM.ui.renderHome = function(){
       '<button class="btn" data-action="cards">🃏 '+WCM.t('cardAlbum')+' ('+WCM.cardCount()+'/'+WCM.CARDS.length+')</button>'+
       '<button class="btn ghost lang-toggle" data-action="lang-toggle">🌐 '+(zh?'English':'繁體中文')+'</button>'+
     '</div>'+
+    (WCM.isLoggedIn()
+      ? '<div class="auth-status"><span>👤 '+WCM.auth.email+'</span><button class="btn ghost small" data-action="logout">'+WCM.t('authLogout')+'</button></div>'
+      : '<div class="auth-status"><button class="btn ghost small" data-action="auth">🔑 '+WCM.t('authLogin')+' / '+WCM.t('authRegister')+'</button></div>')+
     '<p class="lang-hint">'+(zh?'點擊 🌐 一鍵切換 English / 繁體中文':'Tap 🌐 to switch English / 繁體中文')+'</p>'+
   '</div>';
 };
@@ -412,8 +416,60 @@ WCM.ui.renderSettings = function(){
       '<div class="set-row"><label>'+WCM.t('sound')+'</label>'+
         '<div class="seg"><button class="seg-btn'+(son?' active':'')+'" data-action="sound-on">'+WCM.t('on')+'</button>'+
         '<button class="seg-btn'+(!son?' active':'')+'" data-action="sound-off">'+WCM.t('off')+'</button></div></div>'+
-      '<button class="btn danger" data-action="reset">'+(WCM.lang==='zh-TW'?'重置進度':'Reset Progress')+'</button>'+
+    '<div class="set-row auth-set">'+(WCM.isLoggedIn()
+      ? '<div><label>'+WCM.t('authLoggedInAs')+'</label><div class="auth-email-display">'+WCM.auth.email+'</div></div><button class="btn" data-action="logout">'+WCM.t('authLogout')+'</button>'
+      : '<button class="btn primary" data-action="auth">🔑 '+WCM.t('authLogin')+' / '+WCM.t('authRegister')+'</button>')+
+    '</div>'+
+    '<button class="btn danger" data-action="reset">'+(WCM.lang==='zh-TW'?'重置進度':'Reset Progress')+'</button>'+
     '</div></div>';
+};
+
+WCM.ui.renderAuth = function(){
+  var mode = WCM.ui.authMode || 'login';
+  var isReg = mode === 'register';
+  var title = isReg ? WCM.t('authRegisterTitle') : WCM.t('authLoginTitle');
+  var btnLabel = isReg ? WCM.t('authRegisterBtn') : WCM.t('authLoginBtn');
+  var switchLink = isReg
+    ? '<button class="btn ghost small" data-action="auth-mode-login">'+WCM.t('authHaveAccount')+'</button>'
+    : '<button class="btn ghost small" data-action="auth-mode-register">'+WCM.t('authNoAccount')+'</button>';
+  var errHtml = WCM.ui.authError ? '<div class="auth-error">⚠ '+WCM.ui.authError+'</div>' : '';
+  var syncNote = '<p class="auth-note">'+(isReg?'✓ ':'☁ ')+(isReg?WCM.t('authCloudSync'):WCM.t('authLocalOnly'))+'</p>';
+  return '<div class="screen auth"><div class="forest-bg"></div>'+
+    '<div class="content">'+
+      '<div class="lvl-head"><button class="icon-btn" data-action="home">‹</button><div class="lvl-title">'+title+'</div></div>'+
+      '<div class="auth-form">'+
+        '<div class="auth-cat">🐱</div>'+
+        '<label>'+WCM.t('authEmail')+'</label>'+
+        '<input id="auth-email" type="email" autocomplete="email" placeholder="you@example.com">'+
+        '<label>'+WCM.t('authPassword')+'</label>'+
+        '<input id="auth-password" type="password" autocomplete="'+(isReg?'new-password':'current-password')+'" placeholder="'+WCM.t('authPasswordHint')+'">'+
+        errHtml+
+        '<button class="btn primary big" data-action="'+(isReg?'auth-register':'auth-login')+'">'+btnLabel+'</button>'+
+        switchLink+syncNote+
+      '</div>'+
+    '</div></div>';
+};
+WCM.ui.doLogin = function(){
+  var email = (document.getElementById('auth-email')||{}).value || '';
+  var password = (document.getElementById('auth-password')||{}).value || '';
+  if(!email || !password){ WCM.ui.authError = WCM.t('authError'); WCM.ui.render(); return; }
+  WCM.login(email, password).then(function(res){
+    if(res.error){ WCM.ui.authError = res.error; WCM.ui.render(); return; }
+    WCM.setAuth({ token: res.token, email: res.user.email });
+    WCM.cloudPull().then(function(){
+      WCM.ui.authError=''; WCM.ui.toast(WCM.t('authLoginSuccess')); WCM.ui.go('home');
+    });
+  }).catch(function(){ WCM.ui.authError = WCM.t('authError'); WCM.ui.render(); });
+};
+WCM.ui.doRegister = function(){
+  var email = (document.getElementById('auth-email')||{}).value || '';
+  var password = (document.getElementById('auth-password')||{}).value || '';
+  if(!email || !password){ WCM.ui.authError = WCM.t('authError'); WCM.ui.render(); return; }
+  WCM.register(email, password, WCM.state).then(function(res){
+    if(res.error){ WCM.ui.authError = res.error; WCM.ui.render(); return; }
+    WCM.setAuth({ token: res.token, email: res.user.email });
+    WCM.ui.authError=''; WCM.ui.toast(WCM.t('authRegisterSuccess')); WCM.ui.go('home');
+  }).catch(function(){ WCM.ui.authError = WCM.t('authError'); WCM.ui.render(); });
 };
 
 /* ---------- interaction ---------- */
@@ -425,6 +481,14 @@ WCM.ui.handleClick = function(e){
     case 'play': WCM.audio.click(); WCM.ui.go('regions'); break;
     case 'settings': WCM.audio.click(); WCM.ui.go('settings'); break;
     case 'home': WCM.audio.click(); WCM.ui.go('home'); break;
+    case 'auth': WCM.audio.click(); WCM.ui.authError=''; WCM.ui.authMode='login'; WCM.ui.go('auth'); break;
+    case 'auth-mode-login': WCM.audio.click(); WCM.ui.authMode='login'; WCM.ui.authError=''; WCM.ui.render(); break;
+    case 'auth-mode-register': WCM.audio.click(); WCM.ui.authMode='register'; WCM.ui.authError=''; WCM.ui.render(); break;
+    case 'auth-login': WCM.ui.doLogin(); break;
+    case 'auth-register': WCM.ui.doRegister(); break;
+    case 'logout':
+      if(confirm(WCM.t('authLogoutConfirm'))){ WCM.logoutCloud().then(function(){ WCM.ui.render(); }); }
+      break;
     case 'territories': WCM.audio.click(); WCM.ui.go('regions'); break;
     case 'map': WCM.audio.click(); WCM.ui.go('map'); break;
     case 'select-region':
@@ -551,3 +615,4 @@ WCM.ui.finish = function(){
   else WCM.audio.star();
   WCM.ui.go('reward');
 };
+WCM.ui = { screen:'home', session:null, currentRegion:null, authMode:'login', authError:'' };

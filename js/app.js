@@ -3,6 +3,9 @@ window.WCM = window.WCM || {};
 WCM.app = {
   init: function(){
     WCM.checkDaily();
+    WCM.restoreSession().then(function(){
+      if(WCM.ui.screen==='home') WCM.ui.render();
+    });
     var el = document.getElementById('app');
     el.addEventListener('click', WCM.ui.handleClick);
     // stop iOS double-tap zoom delay on buttons
