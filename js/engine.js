@@ -181,6 +181,129 @@ function genMixed(){
   return genReview();
 }
 
+/* ---------- 運算律巧算 (laws + friendly numbers) ---------- */
+function genLaws(){
+  var zh = WCM.lang==='zh-TW';
+  var distPairs = [[25,4],[4,25],[8,50],[50,8],[20,5],[5,20]];
+  var assocPairs = [[25,4],[4,25],[20,5],[5,20],[50,2],[2,50],[125,8]];
+  var factorNs = [25,37,48,12,36,8];
+  var kind = pick(['dist','factor','assoc','distMC']);
+  var display, ans, sol, hint, choices=null, type='input';
+  if(kind==='dist'){
+    var pr = pick(distPairs); var a=pr[0], b=pr[1], c=ri(2,9);
+    ans = a*(b+c);
+    display = a+' × ('+b+' + '+c+') = ?';
+    sol = [
+      line(zh?'分配律':'Distribute', a+'×'+b+' + '+a+'×'+c, (a*b)+' + '+(a*c)),
+      line(zh?'再算':'Then', (a*b)+' + '+(a*c), ans)
+    ];
+    hint = zh?'用分配律：a×(b+c)=a×b+a×c。':'Use the distributive law: a×(b+c)=a×b+a×c.';
+  } else if(kind==='factor'){
+    var n = pick(factorNs);
+    var sub = pick([0,1,2]);
+    if(sub===0){            /* n×99+n = n×100 */
+      ans = n*100;
+      display = n+' × 99 + '+n+' = ?';
+      sol = [ line(zh?'提取公因數':'Factor', n+'×99 + '+n+'×1', n+'×(99+1)'), line(zh?'再算':'Then', n+'×100', ans) ];
+      hint = zh?'把 '+n+' 提出來：'+n+'×(99+1)。':'Factor out '+n+': '+n+'×(99+1).';
+    } else if(sub===1){     /* n×101 = n×100+n */
+      ans = n*101;
+      display = n+' × 101 = ?';
+      sol = [ line(zh?'拆成':'Split', n+'×100 + '+n, (n*100)+' + '+n), line(zh?'再算':'Then', (n*100)+' + '+n, ans) ];
+      hint = zh?'101 = 100 + 1。':'101 = 100 + 1.';
+    } else {                /* n×98 = n×100 - n×2 */
+      ans = n*98;
+      display = n+' × 98 = ?';
+      sol = [ line(zh?'拆成':'Split', n+'×100 - '+n+'×2', (n*100)+' - '+(n*2)), line(zh?'再算':'Then', (n*100)+' - '+(n*2), ans) ];
+      hint = zh?'98 = 100 - 2。':'98 = 100 - 2.';
+    }
+  } else if(kind==='assoc'){
+    var pr2 = pick(assocPairs); var a2=pr2[0], b2=pr2[1], c2=ri(3,9);
+    ans = a2*b2*c2;
+    display = a2+' × '+c2+' × '+b2+' = ?';
+    sol = [
+      line(zh?'結合律':'Group', '('+a2+'×'+b2+') × '+c2, (a2*b2)+' × '+c2),
+      line(zh?'再算':'Then', (a2*b2)+' × '+c2, ans)
+    ];
+    hint = zh?'先算湊整的兩個數。':'Multiply the pair that makes a round number first.';
+  } else { /* distMC - careless distractor */
+    var pr3 = pick(distPairs); var a3=pr3[0], b3=pr3[1], c3=ri(2,9);
+    ans = a3*(b3+c3);
+    var careless = a3*b3 + c3;          /* forgot to distribute to 2nd term */
+    display = a3+' × ('+b3+' + '+c3+') = ?';
+    sol = [
+      line(zh?'分配律':'Distribute', a3+'×'+b3+' + '+a3+'×'+c3, (a3*b3)+' + '+(a3*c3)),
+      line(zh?'再算':'Then', (a3*b3)+' + '+(a3*c3), ans),
+      zh?('小心：'+a3+'×'+b3+'+'+c3+' = '+careless+' 是漏乘第二項的錯誤。') : ('Careful: '+a3+'×'+b3+'+'+c3+' = '+careless+' forgets to distribute to the second term.')
+    ];
+    hint = zh?'每項都要乘 '+a3+'。':'Multiply BOTH terms by '+a3+'.';
+    choices = makeNumChoices(ans, [careless, ans+ri(5,30), ans-ri(5,20)]);
+    type = 'mc';
+  }
+  return mkQ(display, ans, sol, hint, 2, type, choices, null);
+}
+
+/* ---------- 找錯驗算 (spot the mistake + estimate) ---------- */
+function genCheckWork(){
+  var zh = WCM.lang==='zh-TW';
+  var kind = pick(['mistake','mistake2','est']);
+  var display, ans, sol, hint, choices=null, type='mc';
+  if(kind==='mistake'){
+    var a=ri(3,9), b=ri(3,9), c=ri(3,9);
+    var wrong=(a+b)*c; ans=a+b*c;
+    display = zh ? ('小貓算：'+a+' + '+b+' × '+c+' = '+(a+b)+' × '+c+' = '+wrong+'。正確答案是？')
+                 : ('Kitten computes: '+a+' + '+b+' × '+c+' = '+(a+b)+' × '+c+' = '+wrong+'. The correct answer?');
+    sol = [
+      line(zh?'先乘除':'Multiply first', b+' × '+c, b*c),
+      line(zh?'再算':'Then', a+' + '+(b*c), ans),
+      zh?('小貓錯在先算了 '+a+'+'+b+'，違反「先乘除後加減」。') : ('The kitten added '+a+'+'+b+' first, breaking "multiply before add".')
+    ];
+    hint = zh?'先乘除，後加減。':'Multiply first, then add.';
+    choices = makeNumChoices(ans, [wrong, ans+ri(2,12), ans-ri(2,12)]);
+  } else if(kind==='mistake2'){
+    var a2=25, b2=4, c2=ri(2,9);
+    var wrong2=a2*b2+c2; ans=a2*(b2+c2);
+    display = zh ? ('小貓算：'+a2+' × ('+b2+' + '+c2+') = '+a2+' × '+b2+' + '+c2+' = '+wrong2+'。正確答案是？')
+                 : ('Kitten computes: '+a2+' × ('+b2+' + '+c2+') = '+a2+' × '+b2+' + '+c2+' = '+wrong2+'. The correct answer?');
+    sol = [
+      line(zh?'分配律':'Distribute', a2+'×'+b2+' + '+a2+'×'+c2, (a2*b2)+' + '+(a2*c2)),
+      line(zh?'再算':'Then', (a2*b2)+' + '+(a2*c2), ans),
+      zh?('小貓錯在沒有把 '+a2+' 也乘到 '+c2+'。') : ('The kitten forgot to multiply '+a2+' by '+c2+' too.')
+    ];
+    hint = zh?'a×(b+c)=a×b+a×c。':'a×(b+c)=a×b+a×c.';
+    choices = makeNumChoices(ans, [wrong2, ans+ri(5,30), ans-ri(5,20)]);
+  } else { /* est - estimation */
+    var sub = pick([0,1,2]);
+    var x,y,real,approx;
+    if(sub===0){            /* round to hundreds, add */
+      x=ri(150,249); y=ri(150,249);
+      approx = Math.round(x/100)*100 + Math.round(y/100)*100;
+      real = x+y;
+      display = zh ? ('估算：'+x+' + '+y+' ≈ ?') : ('Estimate: '+x+' + '+y+' ≈ ?');
+      sol = [ line(zh?'百位估算':'Round to 100s', Math.round(x/100)*100+' + '+Math.round(y/100)*100, approx) ];
+      hint = zh?'把兩個數四捨五入到百位。':'Round both numbers to the nearest hundred.';
+    } else if(sub===1){     /* round x to tens, multiply by small y */
+      x=ri(380,520); y=ri(3,9);
+      approx = Math.round(x/10)*10 * y;
+      real = x*y;
+      display = zh ? ('估算：'+x+' × '+y+' ≈ ?') : ('Estimate: '+x+' × '+y+' ≈ ?');
+      sol = [ line(zh?'十位估算':'Round to 10s', Math.round(x/10)*10+' × '+y, approx) ];
+      hint = zh?'先把 '+x+' 四捨五入到十位。':'Round '+x+' to the nearest ten first.';
+    } else {                /* round both to tens, multiply */
+      x=ri(25,45); y=ri(25,45);
+      approx = Math.round(x/10)*10 * Math.round(y/10)*10;
+      real = x*y;
+      display = zh ? ('估算：'+x+' × '+y+' ≈ ?') : ('Estimate: '+x+' × '+y+' ≈ ?');
+      sol = [ line(zh?'兩數十位估算':'Round both to 10s', Math.round(x/10)*10+' × '+Math.round(y/10)*10, approx) ];
+      hint = zh?'兩個數都四捨五入到十位。':'Round both numbers to the nearest ten.';
+    }
+    ans = approx;
+    choices = makeNumChoices(ans, [real, ans+ri(5,40), ans-ri(5,40)]);
+    sol.push(zh ? ('精確值是 '+real+'，估算值只是接近。') : ('The exact value is '+real+'; an estimate only needs to be close.'));
+  }
+  return mkQ(display, ans, sol, hint, 3, type, choices, null);
+}
+
 /* ================ REGION 2: DECIMALS ================ */
 function genDecPlace(){
   var zh = WCM.lang==='zh-TW';
@@ -1101,6 +1224,8 @@ WCM.generate = function(level){
     case 'twostep': return genTwoStep();
     case 'word': return genWord();
     case 'mixed': return genMixed();
+    case 'laws': return genLaws();
+    case 'checkwork': return genCheckWork();
     case 'dec_place': return genDecPlace();
     case 'dec_compare': return genDecCompare();
     case 'dec_add': return genDecAdd();

@@ -302,5 +302,57 @@ WCM.COURSES = [
         hint:{en:'Use the times table.', 'zh-TW':'背乘法表。'},
         solution:[{en:'6 x 7 = 42.', 'zh-TW':'6 × 7 = 42。'}] }
     ]
+  },
+  /* ---------- 運算律 (laws) ---------- */
+  {
+    id:'crs_laws', kp:'laws', season:1, practiceLevelId:'m6',
+    title:{ en:'Operation Laws', 'zh-TW':'運算律' },
+    steps:[
+      { kind:'concrete', heading:{en:'Friendly numbers', 'zh-TW':'湊整好幫手'},
+        body:{en:'25 x 4 = 100 and 50 x 2 = 100. Spot these round pairs to compute fast.',
+              'zh-TW':'25 × 4 = 100，50 × 2 = 100。認出這些「湊整」的好朋友，算得又快又準。'},
+        svg:'' },
+      { kind:'pictorial', heading:{en:'Share it out', 'zh-TW':'分配律'},
+        body:{en:'25 x (4 + 8) = 25 x 4 + 25 x 8 = 100 + 200 = 300. Multiply BOTH parts by 25.',
+              'zh-TW':'25 × (4 + 8) = 25×4 + 25×8 = 100 + 200 = 300。兩部分都要乘 25。'},
+        svg:'' },
+      { kind:'abstract', heading:{en:'The laws', 'zh-TW':'運算律'},
+        body:{en:'Distributive: a x (b+c) = ab + ac. Associative: (a x b) x c = a x (b x c). Reorder to make round numbers.',
+              'zh-TW':'分配律：a×(b+c)=a×b+a×c。結合律：(a×b)×c=a×(b×c)。重新組合讓數字湊整。'},
+        formula:{en:'a(b+c)=ab+ac · (ab)c=a(bc)', 'zh-TW':'a(b+c)=ab+ac · (ab)c=a(bc)'} }
+    ],
+    guided:[
+      { type:'input', prey:'rabbit', pts:2, diff:2,
+        display:{en:'25 x (4 + 8) = ?', 'zh-TW':'25 × (4 + 8) = ?'},
+        answer:300,
+        hint:{en:'25 x 4 = 100, 25 x 8 = ?.', 'zh-TW':'25×4=100，25×8=？'},
+        solution:[{en:'25 x 4 + 25 x 8 = 100 + 200 = 300.', 'zh-TW':'25×4 + 25×8 = 100 + 200 = 300。'}] }
+    ]
+  },
+  /* ---------- 找錯驗算 (checkwork) ---------- */
+  {
+    id:'crs_checkwork', kp:'checkwork', season:1, practiceLevelId:'m7',
+    title:{ en:'Spot the Mistake', 'zh-TW':'找錯驗算' },
+    steps:[
+      { kind:'concrete', heading:{en:'Carelessness is the enemy', 'zh-TW':'馬虎是大敵'},
+        body:{en:'Most wrong answers come from order of operations or forgetting to distribute. Slow down and check.',
+              'zh-TW':'大部分錯誤來自運算順序錯或漏乘。慢一點，回頭檢查。'},
+        svg:'' },
+      { kind:'pictorial', heading:{en:'Estimate to check', 'zh-TW':'估算驗算'},
+        body:{en:'3 + 4 x 5: 4x5=20, plus 3 is 23, not 35. Estimate ~20-25 to catch big errors.',
+              'zh-TW':'3 + 4×5：4×5=20，加 3 是 23，不是 35。先估算約 20 多，就能發現大錯。'},
+        svg:'' },
+      { kind:'abstract', heading:{en:'Three anti-slip rules', 'zh-TW':'防馬虎三招'},
+        body:{en:'1) Brackets first, then x/, then +-. 2) Distribute to EVERY term. 3) Estimate, then recheck the last step.',
+              'zh-TW':'1）括號先，再乘除，後加減。2）分配律要乘到每一項。3）先估算，再回看最後一步。'},
+        formula:{en:'( ) -> x/ -> +- · share to all · estimate', 'zh-TW':'（ ）-> ×÷ -> +− · 每項都乘 · 估算'} }
+    ],
+    guided:[
+      { type:'mc', prey:'rabbit', pts:3, diff:3,
+        display:{en:'Kitten: 3 + 4 x 5 = 7 x 5 = 35. Correct answer?', 'zh-TW':'小貓算：3 + 4 × 5 = 7 × 5 = 35。正確答案是？'},
+        answer:23, choices:[23,35,15,43],
+        hint:{en:'Multiply before adding.', 'zh-TW':'先乘除後加減。'},
+        solution:[{en:'4 x 5 = 20, 3 + 20 = 23.', 'zh-TW':'4×5=20，3+20=23。'}] }
+    ]
   }
 ];

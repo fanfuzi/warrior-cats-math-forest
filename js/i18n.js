@@ -66,6 +66,8 @@ WCM.I18N = {
     lvlDesc_m3:"Whatever is in parentheses comes first.",
     lvlDesc_m4:"Two steps in one expression.",
     lvlDesc_m5:"Solve real Clan hunting problems.",
+    lvlDesc_m6:"Use associative & distributive laws to compute smartly.",
+    lvlDesc_m7:"Find errors and estimate to check your work.",
     lvlDesc_mboss:"Prove you are ready to be a warrior.",
     lvlDesc_d1:"Identify the tenths and hundredths places.",
     lvlDesc_d2:"Compare and order decimal numbers.",
@@ -339,6 +341,8 @@ WCM.I18N = {
     lvlDesc_m3:"括號裡的先算。",
     lvlDesc_m4:"一個算式兩步計算。",
     lvlDesc_m5:"解決部族狩獵的實際問題。",
+    lvlDesc_m6:"用結合律、分配律巧算。",
+    lvlDesc_m7:"找出錯誤、估算驗算。",
     lvlDesc_mboss:"證明你已準備好成為武士。",
     lvlDesc_d1:"認識十分位和百分位。",
     lvlDesc_d2:"比較小數的大小。",
@@ -592,7 +596,7 @@ WCM.preyForDiff = function(d){
 
 /* ---------- Regions ---------- */
 WCM.REGIONS = [
-  { id:"mixed",    icon:"🐾", en:"Hunting Grounds",    zh:"狩獵訓練場", mentor:"fireheart",  season:1, levels:["m1","m2","m3","m4","m5","mboss"] },
+  { id:"mixed",    icon:"🐾", en:"Hunting Grounds",    zh:"狩獵訓練場", mentor:"fireheart",  season:1, levels:["m1","m2","m3","m4","m5","m6","m7","mboss"] },
   { id:"decimal",  icon:"🐟", en:"Stream Fishery",     zh:"溪流漁場",   mentor:"graystripe", season:1, levels:["d1","d2","d3","d4","d5","d6","dboss"] },
   { id:"geometry", icon:"🏰", en:"Ancient Tree Camp",  zh:"古樹營地",   mentor:"sandstorm",  season:1, levels:["g1","g2","g3","g4","g5","gword","gboss"] },
   { id:"spatial",  icon:"🌲", en:"Highland Rocks",     zh:"高地石林",   mentor:"bluestar",   season:1, levels:["s1","s2","s3","s4","s5","sword","sboss"] },
@@ -733,6 +737,8 @@ WCM.LEVELS = [
   { id:"m3",    region:"mixed",    diff:2, gen:"parens",  icon:"🍃", en:"Parentheses",            zh:"括號" },
   { id:"m4",    region:"mixed",    diff:3, gen:"twostep", icon:"🦊", en:"Two-Step Mixed",         zh:"兩步混合" },
   { id:"m5",    region:"mixed",    diff:3, gen:"word",    icon:"🦉", en:"Word Problems",          zh:"應用題" },
+  { id:"m6",    region:"mixed",    diff:2, gen:"laws",      icon:"⚖️", en:"Operation Laws",      zh:"運算律" },
+  { id:"m7",    region:"mixed",    diff:3, gen:"checkwork", icon:"🔍", en:"Spot the Mistake",    zh:"找錯驗算" },
   { id:"mboss", region:"mixed",    diff:4, gen:"mixed",   icon:"⚔️", en:"Warrior Assessment",     zh:"武士考核", boss:true },
   /* Region 2: Decimals */
   { id:"d1",    region:"decimal",  diff:1, gen:"dec_place",   icon:"💧", en:"Decimal Place Value",  zh:"小數位值" },
