@@ -380,5 +380,57 @@ WCM.COURSES = [
         hint:{en:'25 x 4 = 100, so split 44 into 40 + 4.', 'zh-TW':'25×4=100，把 44 拆成 40 + 4。'},
         solution:[{en:'25 x (40 + 4) = 25x40 + 25x4 = 1000 + 100 = 1100.', 'zh-TW':'25×(40 + 4) = 25×40 + 25×4 = 1000 + 100 = 1100。'}] }
     ]
+  },
+  /* ---------- 思考密林：雞兔同籠 (puz_chicken) ---------- */
+  {
+    id:'crs_puz_chicken', kp:'puz_chicken', season:1, practiceLevelId:'pz5',
+    title:{ en:'Chickens & Rabbits', 'zh-TW':'雞兔同籠' },
+    steps:[
+      { kind:'concrete', heading:{en:'Heads and legs', 'zh-TW':'頭與腳'},
+        body:{en:'Each animal has 1 head. A chicken has 2 legs, a rabbit has 4. Count heads and legs to find how many of each.',
+              'zh-TW':'每隻動物有 1 個頭。雞有 2 隻腳，兔有 4 隻腳。數清楚頭和腳，就能算出各幾隻。'},
+        svg:'' },
+      { kind:'pictorial', heading:{en:'Assume all chickens', 'zh-TW':'假設全是雞'},
+        body:{en:'If all 10 were chickens, there would be 20 legs. But there are 28, so 8 extra legs. Each rabbit adds 2 extra legs, so 8 / 2 = 4 rabbits.',
+              'zh-TW':'若 10 隻全是雞，就有 20 隻腳。但實際有 28 隻，多出 8 隻。每隻兔多 2 隻腳，所以 8 ÷ 2 = 4 隻兔。'},
+        svg:'' },
+      { kind:'abstract', heading:{en:'The formula', 'zh-TW':'公式'},
+        body:{en:'Rabbits = (legs - 2 x heads) / 2. Chickens = heads - rabbits.',
+              'zh-TW':'兔 = (腳數 - 2 × 頭數) ÷ 2。雞 = 頭數 - 兔數。'},
+        formula:{en:'rabbit = (legs - 2*heads)/2', 'zh-TW':'兔 = (腳 - 2×頭) ÷ 2'} }
+    ],
+    guided:[
+      { type:'input', prey:'rabbit', pts:3, diff:3,
+        display:{en:'10 heads, 28 legs. How many rabbits?', 'zh-TW':'雞兔同籠，共 10 隻，腳 28 隻。兔有幾隻？'},
+        answer:4,
+        hint:{en:'Assume all chickens: 20 legs. Extra 8 legs / 2.', 'zh-TW':'假設全是雞：20 隻腳，多出 8 隻，÷ 2。'},
+        solution:[{en:'(28 - 2x10) / 2 = 8 / 2 = 4 rabbits.', 'zh-TW':'(28 - 2×10) ÷ 2 = 8 ÷ 2 = 4 隻兔。'}] }
+    ]
+  },
+  /* ---------- 思考密林：還原問題 (puz_restore) ---------- */
+  {
+    id:'crs_puz_restore', kp:'puz_restore', season:1, practiceLevelId:'pz4',
+    title:{ en:'Work Backward', 'zh-TW':'還原問題' },
+    steps:[
+      { kind:'concrete', heading:{en:'Undo the steps', 'zh-TW':'倒回去走'},
+        body:{en:'A number went through some steps to reach a result. To find it, walk the steps backward.',
+              'zh-TW':'一個數經過幾步變成結果。要找原數，就把步驟倒著走一遍。'},
+        svg:'' },
+      { kind:'pictorial', heading:{en:'Reverse each op', 'zh-TW':'反過來運算'},
+        body:{en:'+3 then x4 gives 32. Reverse: 32 / 4 = 8, then 8 - 3 = 5. The last step is undone first.',
+              'zh-TW':'加 3 再乘 4 得 32。倒推：32 ÷ 4 = 8，再 8 - 3 = 5。最後一步最先還原。'},
+        svg:'' },
+      { kind:'abstract', heading:{en:'The rule', 'zh-TW':'法則'},
+        body:{en:'Reverse the order AND reverse each operation: + becomes -, x becomes /.',
+              'zh-TW':'順序倒過來，運算也反過來：加變減，乘變除。'},
+        formula:{en:'last op undone first · + <-> - · x <-> /', 'zh-TW':'最後一步先還原 · 加↔減 · 乘↔除'} }
+    ],
+    guided:[
+      { type:'input', prey:'vole', pts:2, diff:2,
+        display:{en:'A number +3, then x4, gives 32. Original number?', 'zh-TW':'一個數加 3 再乘 4 得 32，原數是多少？'},
+        answer:5,
+        hint:{en:'Work backward: divide first, then subtract.', 'zh-TW':'倒推：先除後減。'},
+        solution:[{en:'32 / 4 = 8, 8 - 3 = 5.', 'zh-TW':'32 ÷ 4 = 8，8 - 3 = 5。'}] }
+    ]
   }
 ];

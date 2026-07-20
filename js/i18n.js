@@ -88,6 +88,14 @@ WCM.I18N = {
     lvlDesc_s4:"Calculate volumes of cuboids.",
     lvlDesc_s5:"Count cubes in 3D arrangements.",
     lvlDesc_sboss:"Conquer all spatial challenges.",
+    lvlDesc_pz1:"Find the rule and predict the next number.",
+    lvlDesc_pz2:"Use sum and difference to find two numbers.",
+    lvlDesc_pz3:"Count trees along a path or loop.",
+    lvlDesc_pz4:"Work backward from the result to the start.",
+    lvlDesc_pz5:"The classic chickens-and-rabbits cage puzzle.",
+    lvlDesc_pz6:"Use the unchanging age gap to solve.",
+    lvlDesc_pz7:"Share fairly - handle surplus and shortage.",
+    lvlDesc_pzboss:"Master every thinking trick in the maze.",
     bossLabel:"Assessment", startHunt:"Start Hunt", bestStars:"Best", lockedSoon:"Train more to grow",
     /* decimal feedback */
     decHint_add:"Line up the decimal points, then add column by column.",
@@ -364,6 +372,14 @@ WCM.I18N = {
     lvlDesc_s4:"計算長方體的體積。",
     lvlDesc_s5:"數出立體圖形中的小正方體數量。",
     lvlDesc_sboss:"綜合空間考核。",
+    lvlDesc_pz1:"找出規律，預測下一個數。",
+    lvlDesc_pz2:"用和與差求出兩個數。",
+    lvlDesc_pz3:"計算路邊或環形上的植樹數量。",
+    lvlDesc_pz4:"從結果倒推回原數。",
+    lvlDesc_pz5:"經典的雞兔同籠問題。",
+    lvlDesc_pz6:"用不變的年齡差來解題。",
+    lvlDesc_pz7:"公平分配，處理多與少的情況。",
+    lvlDesc_pzboss:"通曉密林中每一種巧思。",
     bossLabel:"考核", startHunt:"開始狩獵", bestStars:"最佳", lockedSoon:"多加訓練以成長",
     decHint_add:"對齊小數點，逐位相加。",
     decHint_sub:"對齊小數點，逐位相減。",
@@ -602,6 +618,7 @@ WCM.REGIONS = [
   { id:"decimal",  icon:"🐟", en:"Stream Fishery",     zh:"溪流漁場",   mentor:"graystripe", season:1, levels:["d1","d2","d3","d4","d5","d6","dboss"] },
   { id:"geometry", icon:"🏰", en:"Ancient Tree Camp",  zh:"古樹營地",   mentor:"sandstorm",  season:1, levels:["g1","g2","g3","g4","g5","gword","gboss"] },
   { id:"spatial",  icon:"🌲", en:"Highland Rocks",     zh:"高地石林",   mentor:"bluestar",   season:1, levels:["s1","s2","s3","s4","s5","sword","sboss"] },
+  { id:"puzzle",  icon:"🧩", en:"Mind Maze",          zh:"思考密林",   mentor:"jayfeather", season:1, levels:["pz1","pz2","pz3","pz4","pz5","pz6","pz7","pzboss"] },
   /* Season 2 - P5 */
   { id:"fraction", icon:"🍃", en:"Fraction Grove",      zh:"分數林地",   mentor:"leafpool",       season:2, levels:["f1","f2","f3","f4","f5","fboss"] },
   { id:"percent",  icon:"🌑", en:"Shadow Proportions",  zh:"影族暗影",   mentor:"brambleclaw",    season:2, levels:["p1","p2","p3","p4","p5","pboss"] },
@@ -709,7 +726,10 @@ WCM.MENTORS = {
     intro_zh:"月亮石閃耀著圓的光輝。圓周率連接所有圓。觸摸石頭，看見無盡的曲線！" },
   yellowfang:   { en:"Yellowfang",    zh:"黃牙",   emoji:"⭐",
     intro_en:"StarClan reads the patterns of data. Mean, median, probability - the stars whisper truths. Listen well!",
-    intro_zh:"星族解讀數據的規律。平均數、中位數、概率--群星低語著真相。仔細聆聽！" }
+    intro_zh:"星族解讀數據的規律。平均數、中位數、概率--群星低語著真相。仔細聆聽！" },
+  jayfeather:   { en:"Jayfeather", zh:"松鴉羽", emoji:"🦉",
+    intro_en:"The Mind Maze twists with puzzles. Think sideways, work backward, spot the pattern--a sharp mind catches the cleverest prey!",
+    intro_zh:"思考密林佈滿謎題。換個角度想、倒著推算、找出規律--靈活的頭腦才能抓住最狡猾的獵物！" }
 };
 WCM.mentorName = function(m){ return WCM.lang==='zh-TW' ? m.zh : m.en; };
 WCM.mentorIntro = function(m){ return WCM.lang==='zh-TW' ? m.intro_zh : m.intro_en; };
@@ -767,6 +787,15 @@ WCM.LEVELS = [
   { id:"s5",    region:"spatial",  diff:3, gen:"sp_count",     icon:"🧱", en:"Cube Counting",        zh:"數正方體" },
   { id:"sword", region:"spatial",  diff:3, gen:"sp_word",  icon:"📦", en:"Spatial Word Problems",  zh:"立體應用題" },
   { id:"sboss", region:"spatial",  diff:4, gen:"sp_mixed",     icon:"🏔️", en:"Summit Assessment",    zh:"石林考核", boss:true },
+  /* Puzzle (思考密林) */
+  { id:"pz1",    region:"puzzle",  diff:1, gen:"puz_pattern",    icon:"🔢", en:"Number Patterns",     zh:"找規律" },
+  { id:"pz2",    region:"puzzle",  diff:2, gen:"puz_sumdiff",    icon:"🎯", en:"Sum & Difference",    zh:"和差問題" },
+  { id:"pz3",    region:"puzzle",  diff:2, gen:"puz_tree",       icon:"🌳", en:"Tree Planting",       zh:"植樹問題" },
+  { id:"pz4",    region:"puzzle",  diff:2, gen:"puz_restore",    icon:"🔄", en:"Work Backward",       zh:"還原問題" },
+  { id:"pz5",    region:"puzzle",  diff:3, gen:"puz_chicken",    icon:"🐔", en:"Chickens & Rabbits",  zh:"雞兔同籠" },
+  { id:"pz6",    region:"puzzle",  diff:3, gen:"puz_age",        icon:"🎂", en:"Age Problems",        zh:"年齡問題" },
+  { id:"pz7",    region:"puzzle",  diff:3, gen:"puz_profitloss", icon:"🍎", en:"Sharing & Surplus",   zh:"盈虧問題" },
+  { id:"pzboss", region:"puzzle",  diff:4, gen:"puz_mixed",      icon:"🧩", en:"Maze Assessment",      zh:"密林考核", boss:true },
   /* ===== Season 2: P5 ===== */
   /* Fraction */
   { id:"f1",    region:"fraction", diff:1, gen:"frac_equiv",    icon:"🍃", en:"Equivalent Fractions",  zh:"等值分數" },

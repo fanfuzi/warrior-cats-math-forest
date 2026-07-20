@@ -1336,6 +1336,159 @@ function genStatsMixed(){
   return pick([genStatsMean, genStatsMedian, genStatsLinegraph, genStatsPiechart, genStatsProb])();
 }
 
+/* ================ REGION: PUZZLE (思考密林 / 思維巧算) ================ */
+/* ---------- 找規律 (number patterns) ---------- */
+function genPuzPattern(){
+  var zh = WCM.lang==='zh-TW';
+  var kind = pick(['arith','geo','square','tri','fib']);
+  var seq=[], ans, sol, hint;
+  if(kind==='arith'){
+    var a=ri(2,9), d=ri(2,9);
+    for(var i=0;i<4;i++) seq.push(a+i*d);
+    ans=a+4*d;
+    sol=[line(zh?'規律':'Pattern', seq[3]+' + '+d, ans)];
+    hint=zh?'看看每次相差多少。':'Look at the difference each step.';
+  } else if(kind==='geo'){
+    var a2=ri(2,4), r=ri(2,3);
+    var cur=a2; for(var j=0;j<4;j++){ seq.push(cur); cur*=r; }
+    ans=seq[3]*r;
+    sol=[line(zh?'規律':'Pattern', seq[3]+' × '+r, ans)];
+    hint=zh?'看看每次乘多少。':'Look at the ratio each step.';
+  } else if(kind==='square'){
+    var a3=ri(1,3); for(var k=0;k<4;k++) seq.push((a3+k)*(a3+k));
+    ans=(a3+4)*(a3+4);
+    sol=[line(zh?'規律':'Pattern', (a3+4)+' × '+(a3+4), ans)];
+    hint=zh?'這些是平方數。':'These are square numbers.';
+  } else if(kind==='tri'){
+    var cur2=ri(1,3); var step=cur2+1; seq.push(cur2);
+    for(var m=0;m<3;m++){ cur2+=step; seq.push(cur2); step++; }
+    ans=cur2+step;
+    sol=[line(zh?'規律':'Pattern', seq[3]+' + '+step, ans)];
+    hint=zh?'相鄰兩數的差越來越大。':'The gaps grow each step.';
+  } else { /* fib */
+    var fa=ri(1,3), fb=fa+ri(1,3); seq=[fa,fb];
+    for(var n=0;n<3;n++){ var fc=seq[seq.length-1]+seq[seq.length-2]; seq.push(fc); }
+    ans=seq[seq.length-1]+seq[seq.length-2];
+    sol=[line(zh?'規律':'Pattern', seq[seq.length-1]+' + '+seq[seq.length-2], ans)];
+    hint=zh?'每個數 = 前兩個數之和。':'Each number = sum of the two before it.';
+  }
+  return mkQ(seq.join(', ')+', ?', ans, sol, hint, 1, 'input', null, null);
+}
+
+/* ---------- 雞兔同籠 (chicken & rabbit) ---------- */
+function genPuzChicken(){
+  var zh = WCM.lang==='zh-TW';
+  var heads=ri(8,30), rabbits=ri(2, heads-3), chickens=heads-rabbits;
+  var legs=2*chickens+4*rabbits;
+  var askRabbit = Math.random()<0.5;
+  var ans = askRabbit ? rabbits : chickens;
+  var display = zh ? ('雞兔同籠，共有 '+heads+' 隻，腳 '+legs+' 隻。'+(askRabbit?'兔':'雞')+'有幾隻？')
+                   : ('Chickens and rabbits share a cage: '+heads+' heads, '+legs+' legs. How many '+(askRabbit?'rabbits':'chickens')+'?');
+  var extra = legs - 2*heads;        /* if all were chickens, extra legs come from rabbits */
+  var sol = [
+    line(zh?'假設全是雞':'Assume all chickens', '2 × '+heads+' 隻腳', 2*heads),
+    line(zh?'多出的腳':'Extra legs', legs+' - '+(2*heads), extra),
+    line(zh?'兔數':'Rabbits', extra+' ÷ 2', extra/2)
+  ];
+  if(!askRabbit) sol.push(line(zh?'雞數':'Chickens', heads+' - '+(extra/2), heads-extra/2));
+  var hint = zh?'假設全是雞，多出的腳除以 2 就是兔。':'Assume all chickens; extra legs ÷ 2 = rabbits.';
+  return mkQ(display, ans, sol, hint, 3, 'input', null, null);
+}
+
+/* ---------- 和差問題 (sum & difference) ---------- */
+function genPuzSumDiff(){
+  var zh = WCM.lang==='zh-TW';
+  var big=ri(12,45), small=ri(3, big-3);
+  var sum=big+small, diff=big-small;
+  var askBig = Math.random()<0.5;
+  var ans = askBig ? big : small;
+  var display = zh ? ('兩數之和是 '+sum+'，差是 '+diff+'。'+(askBig?'大數':'小數')+'是多少？')
+                   : ('Two numbers sum to '+sum+' and differ by '+diff+'. The '+(askBig?'larger':'smaller')+' number?');
+  var sol = [
+    line(zh?'大數':'Larger', '('+sum+' + '+diff+') ÷ 2', (sum+diff)/2),
+    line(zh?'小數':'Smaller', '('+sum+' - '+diff+') ÷ 2', (sum-diff)/2)
+  ];
+  var hint = zh?'大數=(和+差)÷2，小數=(和-差)÷2。':'Larger=(sum+diff)/2, smaller=(sum-diff)/2.';
+  return mkQ(display, ans, sol, hint, 2, 'input', null, null);
+}
+
+/* ---------- 植樹問題 (tree planting) ---------- */
+function genPuzTree(){
+  var zh = WCM.lang==='zh-TW';
+  var spacing=ri(2,8);
+  var display, ans, sol, hint;
+  if(Math.random()<0.4){            /* circular / closed loop */
+    var count=ri(4,12); var total=spacing*count; ans=count;
+    display = zh ? ('圓形花壇周長 '+total+' 米，每隔 '+spacing+' 米種一棵花，共種幾棵？')
+                 : ('A circular flower bed has circumference '+total+' m. A flower is planted every '+spacing+' m. How many flowers?');
+    sol=[line(zh?'封閉圖形':'Closed loop', total+' ÷ '+spacing, total/spacing), line(zh?'再算':'Then', total/spacing, ans)];
+    hint=zh?'封閉圖形：棵數 = 周長 ÷ 間距。':'Closed loop: count = perimeter ÷ spacing.';
+  } else {                          /* line, both ends */
+    var n=ri(4,12); var length=spacing*n; ans=n+1;
+    display = zh ? ('一條路長 '+length+' 米，每隔 '+spacing+' 米種一棵樹，兩端都種，共幾棵？')
+                 : ('A road is '+length+' m long. A tree is planted every '+spacing+' m, at both ends. How many trees?');
+    sol=[line(zh?'間隔數':'Gaps', length+' ÷ '+spacing, n), line(zh?'兩端都種':'Both ends', n+' + 1', ans)];
+    hint=zh?'兩端都種：棵數 = 間隔數 + 1。':'Both ends: count = gaps + 1.';
+  }
+  return mkQ(display, ans, sol, hint, 2, 'input', null, null);
+}
+
+/* ---------- 年齡問題 (age) ---------- */
+function genPuzAge(){
+  var zh = WCM.lang==='zh-TW';
+  var son=ri(8,15), t=ri(3,12), mom=2*son+t;   /* ensures (mom+t) = 2(son+t) */
+  var ans=t;
+  var display = zh ? ('媽媽今年 '+mom+' 歲，兒子 '+son+' 歲，多少年後媽媽的年齡正好是兒子的 2 倍？')
+                   : ('Mom is '+mom+' years old, son is '+son+'. In how many years will Mom be exactly twice the son\'s age?');
+  var diff=mom-son;
+  var sol = [
+    line(zh?'年齡差不變':'Age gap stays', mom+' - '+son, diff),
+    line(zh?'2倍時兒子歲數':'Son at 2×', '差 = '+diff, diff),
+    line(zh?'再算':'Then', diff+' - '+son, ans)
+  ];
+  var hint = zh?'年齡差不變；2 倍時兒子的歲數正好等於年齡差。':'The age gap never changes; when 2×, the son\'s age equals the gap.';
+  return mkQ(display, ans, sol, hint, 3, 'input', null, null);
+}
+
+/* ---------- 還原問題 (work backward) ---------- */
+function genPuzRestore(){
+  var zh = WCM.lang==='zh-TW';
+  var orig=ri(3,15), a=ri(2,20), b=ri(2,9);
+  var result=(orig+a)*b;
+  var ans=orig;
+  var display = zh ? ('一個數先加 '+a+'，再乘 '+b+'，得到 '+result+'。原數是多少？')
+                   : ('A number is first increased by '+a+', then multiplied by '+b+', giving '+result+'. What is the original number?');
+  var sol = [
+    line(zh?'倒推：先除':'Back: divide', result+' ÷ '+b, result/b),
+    line(zh?'再減':'Then subtract', (result/b)+' - '+a, (result/b)-a)
+  ];
+  var hint = zh?'從結果倒著算：先除後減。':'Work backward: divide first, then subtract.';
+  return mkQ(display, ans, sol, hint, 2, 'input', null, null);
+}
+
+/* ---------- 盈虧問題 (profit & loss sharing) ---------- */
+function genPuzProfitLoss(){
+  var zh = WCM.lang==='zh-TW';
+  var people=ri(6,15), per1=ri(2,4), per2=per1+1, extra=ri(2, people-1);
+  var short=people-extra;            /* keeps the total consistent */
+  var total=people*per1+extra;
+  var ans=people;
+  var display = zh ? ('把 '+total+' 個蘋果分給小朋友，每人 '+per1+' 個多 '+extra+' 個，每人 '+per2+' 個少 '+short+' 個。有幾個小朋友？')
+                   : ('Sharing '+total+' apples: '+per1+' each leaves '+extra+' extra; '+per2+' each is '+short+' short. How many children?');
+  var sol = [
+    line(zh?'每人差':'Per-child gap', per2+' - '+per1, 1),
+    line(zh?'總差額':'Total swing', extra+' + '+short, extra+short),
+    line(zh?'人數':'Children', (extra+short)+' ÷ 1', people)
+  ];
+  var hint = zh?'人數 = (多 + 少) ÷ 每人差。':'Children = (extra + short) ÷ per-child gap.';
+  return mkQ(display, ans, sol, hint, 3, 'input', null, null);
+}
+
+/* ---------- 思考密林綜合 (boss mix) ---------- */
+function genPuzMixed(){
+  return pick([genPuzPattern, genPuzChicken, genPuzSumDiff, genPuzTree, genPuzAge, genPuzRestore, genPuzProfitLoss])();
+}
+
 /* ================ GENERATE DISPATCHER ================ */
 WCM.generate = function(level){
   switch(level.gen){
@@ -1348,6 +1501,14 @@ WCM.generate = function(level){
     case 'laws': return genLaws();
     case 'checkwork': return genCheckWork();
     case 'laws_adv': return genLawsAdv();
+    case 'puz_pattern': return genPuzPattern();
+    case 'puz_chicken': return genPuzChicken();
+    case 'puz_sumdiff': return genPuzSumDiff();
+    case 'puz_tree': return genPuzTree();
+    case 'puz_age': return genPuzAge();
+    case 'puz_restore': return genPuzRestore();
+    case 'puz_profitloss': return genPuzProfitLoss();
+    case 'puz_mixed': return genPuzMixed();
     case 'dec_place': return genDecPlace();
     case 'dec_compare': return genDecCompare();
     case 'dec_add': return genDecAdd();
