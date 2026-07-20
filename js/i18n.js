@@ -740,6 +740,7 @@ WCM.BADGES = {
   decimal:  { en:"Stream Swimmer",   zh:"溪流之泳", emoji:"🐟" },
   geometry: { en:"Camp Builder",     zh:"營地建造", emoji:"🏰" },
   spatial:  { en:"Sky Watcher",      zh:"天空守望", emoji:"🌲" },
+  puzzle:   { en:"Mind Solver",      zh:"解謎之貓", emoji:"🧩" },
   fraction: { en:"Grove Guardian",   zh:"林地守護", emoji:"🍃" },
   percent:  { en:"Shadow Seer",      zh:"暗影洞察", emoji:"🌑" },
   ratio:    { en:"Moor Runner",      zh:"荒原疾跑", emoji:"💨" },
