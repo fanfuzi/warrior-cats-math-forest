@@ -304,6 +304,127 @@ function genCheckWork(){
   return mkQ(display, ans, sol, hint, 3, type, choices, null);
 }
 
+/* ---------- 運算律進階 (multi-digit laws + word + thinking) ---------- */
+function genLawsAdv(){
+  var zh = WCM.lang==='zh-TW';
+  var kind = pick(['bigDist','bigAssoc','word','think']);
+  var display, ans, sol, hint;
+  if(kind==='bigDist'){
+    var sub = pick([0,1]);
+    if(sub===0){            /* split tens: a × (round + ones) */
+      var pr = pick([[25,40],[125,80],[4,250],[50,20],[8,125]]);
+      var a=pr[0], base=pr[1], c=ri(1,9);
+      var n = base + c;
+      ans = a*n;
+      display = a+' × '+n+' = ?';
+      sol = [
+        line(zh?'拆數':'Split', a+' × '+n, a+'×('+base+'+'+c+')'),
+        line(zh?'分配律':'Distribute', a+'×'+base+' + '+a+'×'+c, (a*base)+' + '+(a*c)),
+        line(zh?'再算':'Then', (a*base)+' + '+(a*c), ans)
+      ];
+      hint = zh?'把 '+n+' 拆成 '+base+' + '+c+'。':'Split '+n+' into '+base+' + '+c+'.';
+    } else {                /* near 100 / 1000 */
+      var nr = pick([[99,100,-1],[101,100,1],[98,100,-2],[102,100,2],[999,1000,-1],[1001,1000,1]]);
+      var m=nr[0], base2=nr[1], delta=nr[2];
+      var nn = ri(12,89);
+      ans = m*nn;
+      var dAbs = delta<0 ? -delta : delta;
+      var dStr = delta<0 ? ' - ' : ' + ';
+      display = m+' × '+nn+' = ?';
+      sol = [
+        line(zh?'拆成':'Split', m+' × '+nn, '('+base2+dStr+dAbs+') × '+nn),
+        line(zh?'分配律':'Distribute', base2+'×'+nn+dStr+dAbs+'×'+nn, (base2*nn)+dStr+(dAbs*nn)),
+        line(zh?'再算':'Then', (base2*nn)+dStr+(dAbs*nn), ans)
+      ];
+      hint = zh?'把 '+m+' 看成 '+base2+dStr+dAbs+'。':'Treat '+m+' as '+base2+dStr+dAbs+'.';
+    }
+  } else if(kind==='bigAssoc'){
+    var sub2 = pick([0,1]);
+    if(sub2===0){           /* two friendly pairs, shuffled */
+      var pool = [[125,8],[25,4],[50,2],[20,5]];
+      var i1=ri(0,pool.length-1), i2;
+      do{ i2=ri(0,pool.length-1); }while(i2===i1);
+      var p1=pool[i1], p2=pool[i2];
+      var nums = shuffle([p1[0],p1[1],p2[0],p2[1]]);
+      ans = p1[0]*p1[1]*p2[0]*p2[1];
+      display = nums.join(' × ')+' = ?';
+      var r1=p1[0]*p1[1], r2=p2[0]*p2[1];
+      sol = [
+        line(zh?'結合律':'Group', '('+p1[0]+'×'+p1[1]+') × ('+p2[0]+'×'+p2[1]+')', r1+' × '+r2),
+        line(zh?'再算':'Then', r1+' × '+r2, ans)
+      ];
+      hint = zh?'把能湊整的兩兩配對。':'Pair the numbers that make round products.';
+    } else {                /* split then assoc: a × (f×k) */
+      var fr = pick([[125,8],[25,4],[50,2],[4,25],[8,125],[20,5]]);
+      var a2=fr[0], f=fr[1], k=ri(2,9);
+      var n2 = f*k;
+      ans = a2*n2;
+      display = a2+' × '+n2+' = ?';
+      sol = [
+        line(zh?'拆數':'Split', a2+' × '+n2, a2+' × '+f+' × '+k),
+        line(zh?'結合律':'Group', '('+a2+'×'+f+') × '+k, (a2*f)+' × '+k),
+        line(zh?'再算':'Then', (a2*f)+' × '+k, ans)
+      ];
+      hint = zh?'把 '+n2+' 拆成 '+f+' × '+k+'。':'Split '+n2+' into '+f+' × '+k+'.';
+    }
+  } else if(kind==='word'){
+    var t = pick([0,1,2,3]);
+    if(t===0){              /* 25 × (4k) boxes */
+      var k0=ri(4,9); var qty=k0*4;
+      ans = 25*qty;
+      display = zh ? ('每箱蘋果 '+qty+' 個，買了 25 箱，共多少個？') : ('Each box holds '+qty+' apples. 25 boxes are bought. How many apples in total?');
+      sol = [ line(zh?'巧算':'Smart calc', '25 × '+qty, '25 × 4 × '+k0), line(zh?'結合律':'Group', '25 × 4 × '+k0, '100 × '+k0), line(zh?'再算':'Then', '100 × '+k0, ans) ];
+      hint = zh?'把 '+qty+' 拆成 4 × '+k0+'。':'Split '+qty+' into 4 × '+k0+'.';
+    } else if(t===1){       /* 25 × (4k) price */
+      var k1=ri(7,13); var price=k1*4;
+      ans = 25*price;
+      display = zh ? ('每套書 '+price+' 元，買 25 套共多少元？') : ('Each book set costs $'+price+'. 25 sets are bought. Total cost?');
+      sol = [ line(zh?'巧算':'Smart calc', '25 × '+price, '25 × 4 × '+k1), line(zh?'結合律':'Group', '25 × 4 × '+k1, '100 × '+k1), line(zh?'再算':'Then', '100 × '+k1, ans) ];
+      hint = zh?'把 '+price+' 拆成 4 × '+k1+'。':'Split '+price+' into 4 × '+k1+'.';
+    } else if(t===2){       /* 125 × (8k) */
+      var k2=ri(1,4); var boxes=k2*8;
+      ans = 125*boxes;
+      display = zh ? ('每盒 125 克，買了 '+boxes+' 盒，共多少克？') : ('Each box weighs 125 g. '+boxes+' boxes are bought. Total grams?');
+      sol = [ line(zh?'巧算':'Smart calc', '125 × '+boxes, '125 × 8 × '+k2), line(zh?'結合律':'Group', '125 × 8 × '+k2, '1000 × '+k2), line(zh?'再算':'Then', '1000 × '+k2, ans) ];
+      hint = zh?'把 '+boxes+' 拆成 8 × '+k2+'。':'Split '+boxes+' into 8 × '+k2+'.';
+    } else {                /* 99 × n near-100 word */
+      var n3=ri(12,89);
+      ans = 99*n3;
+      display = zh ? ('每張門票 99 元，'+n3+' 人共多少元？') : ('Each ticket costs $99. '+n3+' people buy tickets. Total cost?');
+      sol = [ line(zh?'看成':'Rewrite', '99 × '+n3, '(100 - 1) × '+n3), line(zh?'分配律':'Distribute', '100×'+n3+' - 1×'+n3, (100*n3)+' - '+n3), line(zh?'再算':'Then', (100*n3)+' - '+n3, ans) ];
+      hint = zh?'把 99 看成 100 - 1。':'Treat 99 as 100 - 1.';
+    }
+  } else { /* think */
+    var sub3 = pick([0,1,2]);
+    if(sub3===0){           /* complementary pairing to 1000 */
+      var ds = shuffle([1,2,3,4,5,6,7,8,9]).slice(0,3);
+      var hi = [1000-ds[0], 1000-ds[1], 1000-ds[2]];
+      var nums2 = shuffle(hi.concat(ds));
+      ans = 3000;
+      display = nums2.join(' + ')+' = ?';
+      sol = [
+        line(zh?'配對':'Pair', '('+hi[0]+'+'+ds[0]+')+('+hi[1]+'+'+ds[1]+')+('+hi[2]+'+'+ds[2]+')', '1000 + 1000 + 1000'),
+        line(zh?'再算':'Then', '1000 + 1000 + 1000', ans)
+      ];
+      hint = zh?'把相加等於 1000 的兩數配成一對。':'Pair numbers that add up to 1000.';
+    } else if(sub3===1){    /* middle number × count */
+      var mid = ri(10,40)*10;
+      var terms = [mid-2,mid-1,mid,mid+1,mid+2];
+      ans = mid*5;
+      display = terms.join(' + ')+' = ?';
+      sol = [ line(zh?'中間數×個數':'Middle × count', mid+' × 5', ans) ];
+      hint = zh?'連續數求和：中間數 × 個數。':'Consecutive sum: middle number × count.';
+    } else {                /* Gauss sum 1..n */
+      var gn = ri(10,20);
+      ans = gn*(gn+1)/2;
+      display = '1 + 2 + 3 + ... + '+gn+' = ?';
+      sol = [ line(zh?'首尾配對':'Pair ends', '(1 + '+gn+') × '+gn+' ÷ 2', (gn+1)+' × '+gn+' ÷ 2'), line(zh?'再算':'Then', (gn+1)+' × '+gn+' ÷ 2', ans) ];
+      hint = zh?'首項加末項，乘項數除以 2。':'(first + last) × count ÷ 2.';
+    }
+  }
+  return mkQ(display, ans, sol, hint, 3, 'input', null, null);
+}
+
 /* ================ REGION 2: DECIMALS ================ */
 function genDecPlace(){
   var zh = WCM.lang==='zh-TW';
@@ -1226,6 +1347,7 @@ WCM.generate = function(level){
     case 'mixed': return genMixed();
     case 'laws': return genLaws();
     case 'checkwork': return genCheckWork();
+    case 'laws_adv': return genLawsAdv();
     case 'dec_place': return genDecPlace();
     case 'dec_compare': return genDecCompare();
     case 'dec_add': return genDecAdd();

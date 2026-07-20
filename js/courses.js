@@ -354,5 +354,31 @@ WCM.COURSES = [
         hint:{en:'Multiply before adding.', 'zh-TW':'先乘除後加減。'},
         solution:[{en:'4 x 5 = 20, 3 + 20 = 23.', 'zh-TW':'4×5=20，3+20=23。'}] }
     ]
+  },
+  /* ---------- 運算律進階 (laws_adv) ---------- */
+  {
+    id:'crs_laws_adv', kp:'laws_adv', season:1, practiceLevelId:'m8',
+    title:{ en:'Advanced Laws', 'zh-TW':'運算律進階' },
+    steps:[
+      { kind:'concrete', heading:{en:'Round friends', 'zh-TW':'湊整好朋友'},
+        body:{en:'25 x 4 = 100 and 125 x 8 = 1000. Break big numbers into these round pairs to compute fast.',
+              'zh-TW':'25 × 4 = 100，125 × 8 = 1000。把大數拆成這些湊整好朋友，算得又快又準。'},
+        svg:'' },
+      { kind:'pictorial', heading:{en:'Near 100 trick', 'zh-TW':'接近 100 的巧算'},
+        body:{en:'99 x 47 = (100 - 1) x 47 = 4700 - 47 = 4653. Turn 99, 101, 98, 999 into 100 +/- k.',
+              'zh-TW':'99 × 47 = (100 - 1) × 47 = 4700 - 47 = 4653。把 99、101、98、999 看成 100 ± k。'},
+        svg:'' },
+      { kind:'abstract', heading:{en:'The toolkit', 'zh-TW':'巧算工具箱'},
+        body:{en:'Distribute a x (b+c) = ab + ac. Group round pairs. Sum 1..n = (1+n) x n / 2.',
+              'zh-TW':'分配律 a×(b+c)=a×b+a×c。結合律湊整配對。1 加到 n = (1+n)×n÷2。'},
+        formula:{en:'a(b+c)=ab+ac · 99=100-1 · sum=(1+n)n/2', 'zh-TW':'a(b+c)=ab+ac · 99=100-1 · 和=(1+n)n÷2'} }
+    ],
+    guided:[
+      { type:'input', prey:'rabbit', pts:3, diff:3,
+        display:{en:'25 x 44 = ?', 'zh-TW':'25 × 44 = ?'},
+        answer:1100,
+        hint:{en:'25 x 4 = 100, so split 44 into 40 + 4.', 'zh-TW':'25×4=100，把 44 拆成 40 + 4。'},
+        solution:[{en:'25 x (40 + 4) = 25x40 + 25x4 = 1000 + 100 = 1100.', 'zh-TW':'25×(40 + 4) = 25×40 + 25×4 = 1000 + 100 = 1100。'}] }
+    ]
   }
 ];
