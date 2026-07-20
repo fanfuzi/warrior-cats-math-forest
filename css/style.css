@@ -89,14 +89,14 @@ body{
 .fk-item{font-size:1rem;position:relative;}
 .fk-item sub{font-size:.65rem;color:var(--gold);}
 .random-btn{margin-bottom:16px;}
-.level-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.level-grid{display:grid;grid-template-columns:1fr;gap:12px;}
 .level-card{
   text-align:left;background:var(--card2);border:2px solid var(--line);border-radius:18px;
   padding:14px;cursor:pointer;color:var(--text);font-family:inherit;transition:transform .1s, border-color .15s;
   display:flex;flex-direction:column;gap:6px;
 }
 .level-card:active{transform:scale(.97);}
-.level-card.boss{grid-column:1/-1;border-color:var(--fire);background:linear-gradient(180deg,rgba(90,42,18,.55),var(--card2));}
+.level-card.boss{border-color:var(--fire);background:linear-gradient(180deg,rgba(90,42,18,.55),var(--card2));}
 .lc-top{display:flex;justify-content:space-between;align-items:center;}
 .lc-icon{font-size:1.8rem;}
 .lc-best{color:var(--gold);font-size:.85rem;letter-spacing:1px;}
@@ -201,7 +201,7 @@ body{
   .q-display{font-size:2rem;}
 }
 @media (min-width:700px){
-  .level-grid{grid-template-columns:1fr 1fr 1fr;}
+  .level-grid{grid-template-columns:1fr;}
 }
 
 /* ============ NEW: story intro, badges, regions, mentor, svg ============ */
