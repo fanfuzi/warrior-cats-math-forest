@@ -664,6 +664,15 @@ WCM.ui.finish = function(){
   if(s.rankUp){ cardId=WCM.signatureCardForRank(curIdx); if(!cardId||WCM.hasCard(cardId)) cardId=WCM.randomUncollectedCard(); }
   else if(s.isReview && stars>=2){ cardId=WCM.randomUncollectedCard(); }
   else if(!s.isReview && s.level.boss && stars>=2){ cardId=WCM.randomUncollectedCard(); }
+  /* Steady card flow: at max rank (族長) rank-ups stop forever, so without
+     this a maxed-out player almost never sees new cards. A per-clear chance
+     keeps the album alive; lower ranks get a smaller trickle so rank-up
+     signature cards still feel special. Review is already guaranteed above. */
+  if(!cardId && stars>=2 && !s.isReview){
+    var maxRank = curIdx>=WCM.RANKS.length-1;
+    var dropChance = maxRank ? (stars>=3?0.45:0.30) : (stars>=3?0.15:0.08);
+    if(Math.random()<dropChance) cardId=WCM.randomUncollectedCard();
+  }
   if(cardId){ WCM.addCard(cardId); s.cardEarned=WCM.cardById(cardId); }
   if(s.badgeEarned){ /* badge fanfare already played */ }
   else if(s.rankUp) WCM.audio.levelup();
