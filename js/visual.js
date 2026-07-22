@@ -600,7 +600,7 @@ WCM.svg.card = function(c, opts){
   opts=opts||{};
   var zh=WCM.lang==='zh-TW', hidden=opts.hidden;
   var RAR={1:{b:'#a9762e',g:'#d99a3e'},2:{b:'#3f7a3a',g:'#6fcf6f'},3:{b:'#2f6fa8',g:'#5bb0e8'},4:{b:'#5b3294',g:'#b07ce0'},5:{b:'#b9862a',g:'#ffd56b'}};
-  var CLAN={ThunderClan:['#4a7c2e','#16300a','#f4a738','⚡'],RiverClan:['#226a86','#0e2c3a','#5fd9ca','💧'],WindClan:['#8a7a4a','#332c18','#d4b56a','💨'],ShadowClan:['#46356b','#140d22','#b07ce0','🌑'],StarClan:['#3a4a8a','#0c1428','#b0c4ff','✦']};
+  var CLAN={ThunderClan:['#4a7c2e','#16300a','#f4a738','⚡'],RiverClan:['#226a86','#0e2c3a','#5fd9ca','💧'],WindClan:['#8a7a4a','#332c18','#d4b56a','💨'],ShadowClan:['#46356b','#140d22','#b07ce0','🌑'],StarClan:['#3a4a8a','#0c1428','#b0c4ff','✦'],BloodClan:['#7a2a2a','#2a0a0a','#e05a5a','🩸']};
   var cl=CLAN[c.clan]||CLAN.ThunderClan, r=RAR[c.rarity]||RAR[1], gid='cg_'+c.id;
   var portrait=WCM.svg.catPortrait(hidden?{coat:'#1b2a1d',eye:'#1b2a1d',mark:'solid'}:c);
   var gems=''; for(var i=0;i<5;i++){ gems+='<text x="'+(98+i*11)+'" y="33" font-size="12" text-anchor="middle" fill="'+(hidden?'#2a3a2c':(i<c.rarity?r.g:'#22301c'))+'">◆</text>'; }

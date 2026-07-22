@@ -662,15 +662,13 @@ WCM.ui.finish = function(){
   s.rankUp = curIdx>s.startRankIdx ? WCM.RANKS[curIdx] : null;
   var cardId=null;
   if(s.rankUp){ cardId=WCM.signatureCardForRank(curIdx); if(!cardId||WCM.hasCard(cardId)) cardId=WCM.randomUncollectedCard(); }
-  else if(s.isReview && stars>=2){ cardId=WCM.randomUncollectedCard(); }
-  else if(!s.isReview && s.level.boss && stars>=2){ cardId=WCM.randomUncollectedCard(); }
-  /* Steady card flow: at max rank (族長) rank-ups stop forever, so without
-     this a maxed-out player almost never sees new cards. A per-clear chance
-     keeps the album alive; lower ranks get a smaller trickle so rank-up
-     signature cards still feel special. Review is already guaranteed above. */
-  if(!cardId && stars>=2 && !s.isReview){
+  /* Cards only drop on a PERFECT round (all correct = 3★). Rank-ups are rare
+     milestones and keep their signature card; every other drop is chance-based
+     so the album grows steadily but not too fast. Rarer cards (higher rarity)
+     are weighted to appear less often in randomUncollectedCard. */
+  if(!cardId && stars===3){
     var maxRank = curIdx>=WCM.RANKS.length-1;
-    var dropChance = maxRank ? (stars>=3?0.45:0.30) : (stars>=3?0.15:0.08);
+    var dropChance = s.isReview ? 0.30 : (s.level.boss ? 0.25 : (maxRank ? 0.18 : 0.08));
     if(Math.random()<dropChance) cardId=WCM.randomUncollectedCard();
   }
   if(cardId){ WCM.addCard(cardId); s.cardEarned=WCM.cardById(cardId); }

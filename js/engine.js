@@ -1734,7 +1734,20 @@ WCM.hasCard = function(id){ return WCM.state.cards && WCM.state.cards.indexOf(id
 WCM.addCard = function(id){ if(!WCM.hasCard(id)){ WCM.state.cards=WCM.state.cards||[]; WCM.state.cards.push(id); WCM.saveState(); return true; } return false; };
 WCM.cardCount = function(){ return WCM.state.cards?WCM.state.cards.length:0; };
 WCM.signatureCardForRank = function(idx){ for(var i=0;i<WCM.CARDS.length;i++) if(WCM.CARDS[i].earn===('r'+idx)) return WCM.CARDS[i].id; return null; };
-WCM.randomUncollectedCard = function(){ var pool=[]; for(var i=0;i<WCM.CARDS.length;i++) if(!WCM.hasCard(WCM.CARDS[i].id)) pool.push(WCM.CARDS[i].id); if(!pool.length) return null; return pool[Math.floor(Math.random()*pool.length)]; };
+WCM.randomUncollectedCard = function(){
+  /* Rarity-weighted: lower rarity => higher weight (rarer cards drop less).
+     weight = 6-rarity => r2:4, r3:3, r4:2, r5:1. */
+  var ids=[], wts=[], total=0;
+  for(var i=0;i<WCM.CARDS.length;i++){
+    if(WCM.hasCard(WCM.CARDS[i].id)) continue;
+    var w=Math.max(1, 6-(WCM.CARDS[i].rarity||3));
+    ids.push(WCM.CARDS[i].id); wts.push(w); total+=w;
+  }
+  if(!ids.length) return null;
+  var r=Math.random()*total;
+  for(var j=0;j<ids.length;j++){ r-=wts[j]; if(r<0) return ids[j]; }
+  return ids[ids.length-1];
+};
 
 WCM.state = WCM.loadState();
 WCM.lang = WCM.state.lang;
