@@ -8,7 +8,13 @@ var SW = 2.5;
 
 /* wrap raw svg body in an svg element string */
 function wrap(body, vb){
-  return '<svg viewBox="0 0 '+(vb||SV)+' '+(vb||SV)+'" xmlns="http://www.w3.org/2000/svg" class="shape-svg">'+body+'</svg>';
+  var s=vb||SV;
+  /* A quiet paper-and-grid ground makes each illustration feel like part of
+     the same field notebook, while leaving the mathematical marks untouched. */
+  var ground='<rect x="6" y="6" width="'+(s-12)+'" height="'+(s-12)+'" rx="18" fill="#f7f1df" stroke="#d7bd79" stroke-width="2"/>'+
+    '<path d="M20 35H'+(s-20)+' M20 65H'+(s-20)+' M20 95H'+(s-20)+' M20 125H'+(s-20)+' M20 155H'+(s-20)+' M35 20V'+(s-20)+' M65 20V'+(s-20)+' M95 20V'+(s-20)+' M125 20V'+(s-20)+' M155 20V'+(s-20)+'" stroke="#d7c99f" stroke-width=".65" opacity=".48"/>'+
+    '<path d="M20 20H'+(s-20)+'V'+(s-20)+'H20Z" fill="none" stroke="#fffdf4" stroke-width="2" opacity=".9"/>';
+  return '<svg viewBox="0 0 '+s+' '+s+'" xmlns="http://www.w3.org/2000/svg" class="shape-svg">'+ground+'<g class="shape-art">'+body+'</g></svg>';
 }
 function poly(points, fill, stroke){
   return '<polygon points="'+points+'" fill="'+fill+'" stroke="'+(stroke||STROKE)+'" stroke-width="'+SW+'" stroke-linejoin="round"/>';
@@ -555,17 +561,19 @@ WCM.svg.catPortrait = function(c){
   var coat=c.coat, eye=c.eye, mark=c.mark||'solid', coat2=c.coat2||'#3a2a1a', ST='#241408';
   var role=(c.role&&c.role.en)||'', clan=c.clan||'';
   var g='<g class="cat-portrait">';
-  g+='<path d="M150,186 Q190,172 180,142 Q175,128 158,138" fill="none" stroke="'+coat+'" stroke-width="14" stroke-linecap="round"/>';
+  g+='<ellipse cx="100" cy="202" rx="62" ry="10" fill="#120d08" opacity=".16"/>';
+  g+='<path d="M150,186 Q190,172 180,142 Q175,128 158,138" fill="none" stroke="'+coat+'" stroke-width="15" stroke-linecap="round"/>';
   g+='<path d="M54,196 Q46,132 100,130 Q154,132 146,196 Z" fill="'+coat+'" stroke="'+ST+'" stroke-width="3" stroke-linejoin="round"/>';
+  g+='<path d="M62,188 Q66,150 82,145" fill="none" stroke="#fff6df" stroke-width="4" opacity=".18" stroke-linecap="round"/>';
   g+='<path d="M84,196 Q86,152 100,152 Q114,152 116,196 Z" fill="#ffffff" opacity=".13"/>';
   g+='<ellipse cx="84" cy="194" rx="12" ry="8" fill="'+coat+'" stroke="'+ST+'" stroke-width="2.5"/>';
   g+='<ellipse cx="116" cy="194" rx="12" ry="8" fill="'+coat+'" stroke="'+ST+'" stroke-width="2.5"/>';
-  g+='<circle cx="100" cy="96" r="44" fill="'+coat+'" stroke="'+ST+'" stroke-width="3"/>';
+  g+='<path d="M60,103 Q58,68 82,55 Q100,42 118,55 Q142,68 140,103 Q138,132 100,137 Q62,132 60,103Z" fill="'+coat+'" stroke="'+ST+'" stroke-width="3"/>';
   g+='<path d="M62,76 L56,36 L92,62 Z" fill="'+coat+'" stroke="'+ST+'" stroke-width="3" stroke-linejoin="round"/>';
   g+='<path d="M138,76 L144,36 L108,62 Z" fill="'+coat+'" stroke="'+ST+'" stroke-width="3" stroke-linejoin="round"/>';
   g+='<path d="M66,70 L62,46 L84,62 Z" fill="#f7a8b8"/>';
   g+='<path d="M134,70 L138,46 L116,62 Z" fill="#f7a8b8"/>';
-  g+='<path d="M100,116 Q84,120 80,104 Q92,132 100,132 Q108,132 120,104 Q116,120 100,116 Z" fill="#ffffff" opacity=".12"/>';
+  g+='<path d="M100,116 Q84,120 80,104 Q92,132 100,132 Q108,132 120,104 Q116,120 100,116 Z" fill="#fff8eb" opacity=".22"/>';
   if(mark==='tabby'){
     g+='<g fill="none" stroke="#000000" stroke-width="3" stroke-linecap="round" opacity=".18">'+
       '<path d="M100,56 Q94,64 88,58"/><path d="M100,56 Q106,64 112,58"/><path d="M100,62 L100,72"/>'+
@@ -581,8 +589,8 @@ WCM.svg.catPortrait = function(c){
     g+='<ellipse cx="84" cy="194" rx="6" ry="5" fill="#f4f1ea"/>';
     g+='<ellipse cx="116" cy="194" rx="6" ry="5" fill="#f4f1ea"/>';
   }
-  g+='<ellipse cx="82" cy="98" rx="9.5" ry="12" fill="'+eye+'" stroke="'+ST+'" stroke-width="2"/>';
-  g+='<ellipse cx="118" cy="98" rx="9.5" ry="12" fill="'+eye+'" stroke="'+ST+'" stroke-width="2"/>';
+  g+='<path d="M70,95 Q82,82 94,95 Q82,110 70,95Z" fill="'+eye+'" stroke="'+ST+'" stroke-width="2"/>';
+  g+='<path d="M106,95 Q118,82 130,95 Q118,110 106,95Z" fill="'+eye+'" stroke="'+ST+'" stroke-width="2"/>';
   g+='<ellipse cx="82" cy="99" rx="2.6" ry="10" fill="#0e0a04"/>';
   g+='<ellipse cx="118" cy="99" rx="2.6" ry="10" fill="#0e0a04"/>';
   g+='<circle cx="85" cy="93" r="2.4" fill="#fff" opacity=".92"/>';
@@ -628,18 +636,17 @@ WCM.svg.card = function(c, opts){
   var haloDef = (c.rarity>=5) ? '<radialGradient id="'+gid+'_h" cx="0.5" cy="0.5" r="0.55"><stop offset="0" stop-color="'+r.g+'" stop-opacity="0.55"/><stop offset="1" stop-color="'+r.g+'" stop-opacity="0"/></radialGradient>' : '';
   var halo = (c.rarity>=5 && !hidden) ? '<circle cx="120" cy="150" r="88" fill="url(#'+gid+'_h)" opacity="0.6"/>' : '';
   return '<svg viewBox="0 0 240 320" xmlns="http://www.w3.org/2000/svg" class="char-card'+(opts.big?' big':'')+'">'+
-    '<defs><linearGradient id="'+gid+'" x1="0" y1="0" x2="0.4" y2="1">'+
-      '<stop offset="0" stop-color="'+cl[0]+'"/><stop offset="1" stop-color="'+cl[1]+'"/></linearGradient>'+
-    '<radialGradient id="'+gid+'_g" cx="0.5" cy="0.34" r="0.75">'+
-      '<stop offset="0" stop-color="'+cl[0]+'" stop-opacity="0.95"/><stop offset="1" stop-color="'+cl[1]+'"/></radialGradient>'+haloDef+'</defs>'+
-    '<rect x="5" y="5" width="230" height="310" rx="20" fill="url(#'+gid+'_g)" stroke="'+r.b+'" stroke-width="6"/>'+
-    '<rect x="15" y="15" width="210" height="290" rx="14" fill="none" stroke="'+r.g+'" stroke-width="1.4" opacity=".55"/>'+
-    motif+halo+
-    '<text x="20" y="33" font-size="13" font-weight="800" fill="'+cl[2]+'">'+clanTxt+'</text>'+gems+
-    '<g transform="translate(20,50)">'+portrait+'</g>'+
-    (hidden?'<text x="120" y="178" font-size="42" text-anchor="middle" fill="#3a4a3c" opacity=".8">?</text>':'')+
-    '<rect x="15" y="256" width="210" height="44" rx="12" fill="rgba(0,0,0,.5)" stroke="'+r.g+'" stroke-width="1.2"/>'+
-    '<text x="120" y="278" font-size="17" font-weight="800" fill="#fff" text-anchor="middle" font-family="Nunito,sans-serif">'+nameTxt+'</text>'+
-    '<text x="120" y="293" font-size="11" fill="'+cl[2]+'" text-anchor="middle">'+roleTxt+'</text>'+
+    '<defs><linearGradient id="'+gid+'" x1="0" y1="0" x2="0.55" y2="1"><stop offset="0" stop-color="'+cl[0]+'"/><stop offset="1" stop-color="'+cl[1]+'"/></linearGradient>'+
+    '<radialGradient id="'+gid+'_g" cx=".5" cy=".25" r=".85"><stop offset="0" stop-color="#fff8df" stop-opacity=".24"/><stop offset="1" stop-color="'+cl[1]+'" stop-opacity=".1"/></radialGradient>'+haloDef+'</defs>'+
+    '<rect x="5" y="5" width="230" height="310" rx="23" fill="url(#'+gid+')" stroke="'+r.b+'" stroke-width="6"/>'+
+    '<rect x="13" y="13" width="214" height="294" rx="17" fill="url(#'+gid+'_g)" stroke="'+r.g+'" stroke-width="1.6" opacity=".85"/>'+
+    '<path d="M18 49H222" stroke="'+r.g+'" stroke-width="1.2" opacity=".6"/>'+motif+halo+
+    '<path d="M32 65 Q120 36 208 65 L208 231 Q120 252 32 231Z" fill="#fff9e9" opacity=".09" stroke="'+cl[2]+'" stroke-width="1.2"/>'+
+    '<text x="22" y="34" font-size="11" font-weight="800" fill="#fff5d2" letter-spacing=".4">'+clanTxt+'</text>'+gems+
+    '<g transform="translate(20,48)">'+portrait+'</g>'+
+    (hidden?'<circle cx="120" cy="157" r="38" fill="#172619" opacity=".7"/><text x="120" y="172" font-size="48" text-anchor="middle" fill="#758873">?</text>':'')+
+    '<path d="M23 250 Q120 264 217 250 L217 297 Q120 309 23 297Z" fill="#120d0a" opacity=".68" stroke="'+r.g+'" stroke-width="1.2"/>'+
+    '<text x="120" y="276" font-size="17" font-weight="800" fill="#fffaf0" text-anchor="middle" font-family="Nunito,sans-serif">'+nameTxt+'</text>'+
+    '<text x="120" y="292" font-size="10.5" fill="'+r.g+'" text-anchor="middle" font-weight="700">'+roleTxt+'</text>'+
     '</svg>';
 };
