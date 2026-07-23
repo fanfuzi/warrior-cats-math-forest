@@ -569,6 +569,9 @@ WCM.svg.catPortrait = function(c){
   g+='<ellipse cx="84" cy="194" rx="12" ry="8" fill="'+coat+'" stroke="'+ST+'" stroke-width="2.5"/>';
   g+='<ellipse cx="116" cy="194" rx="12" ry="8" fill="'+coat+'" stroke="'+ST+'" stroke-width="2.5"/>';
   g+='<path d="M60,103 Q58,68 82,55 Q100,42 118,55 Q142,68 140,103 Q138,132 100,137 Q62,132 60,103Z" fill="'+coat+'" stroke="'+ST+'" stroke-width="3"/>';
+  /* cheek tufts give the face the angular, storybook Warrior Cats profile */
+  g+='<path d="M61,101 L50,107 L64,111 L53,119 L72,120" fill="'+coat+'" stroke="'+ST+'" stroke-width="2" stroke-linejoin="round"/>';
+  g+='<path d="M139,101 L150,107 L136,111 L147,119 L128,120" fill="'+coat+'" stroke="'+ST+'" stroke-width="2" stroke-linejoin="round"/>';
   g+='<path d="M62,76 L56,36 L92,62 Z" fill="'+coat+'" stroke="'+ST+'" stroke-width="3" stroke-linejoin="round"/>';
   g+='<path d="M138,76 L144,36 L108,62 Z" fill="'+coat+'" stroke="'+ST+'" stroke-width="3" stroke-linejoin="round"/>';
   g+='<path d="M66,70 L62,46 L84,62 Z" fill="#f7a8b8"/>';
@@ -595,6 +598,7 @@ WCM.svg.catPortrait = function(c){
   g+='<ellipse cx="118" cy="99" rx="2.6" ry="10" fill="#0e0a04"/>';
   g+='<circle cx="85" cy="93" r="2.4" fill="#fff" opacity=".92"/>';
   g+='<circle cx="121" cy="93" r="2.4" fill="#fff" opacity=".92"/>';
+  g+='<circle cx="82" cy="113" r="2" fill="#fff" opacity=".28"/><circle cx="118" cy="113" r="2" fill="#fff" opacity=".28"/>';
   g+='<path d="M94,110 L106,110 L100,117 Z" fill="#e08aa0" stroke="'+ST+'" stroke-width="1.4"/>';
   g+='<path d="M100,117 Q95,123 90,121 M100,117 Q105,123 110,121" fill="none" stroke="'+ST+'" stroke-width="1.6" stroke-linecap="round"/>';
   g+='<g stroke="#ffffff" stroke-width="1.2" opacity=".8">'+
@@ -608,6 +612,8 @@ WCM.svg.catPortrait = function(c){
   /* role & clan accessories (hidden cards pass a stripped object, so these skip) */
   if(role==='Clan Leader'){ g+='<text x="100" y="74" font-size="13" text-anchor="middle" fill="#ffd56b" stroke="#6a4a10" stroke-width="0.4">✦</text>'; }
   if(role==='Medicine Cat'){ g+='<g transform="translate(130,156)"><path d="M0,0 Q-6,-9 0,-15 Q6,-9 0,0 Z" fill="#6fcf6f" stroke="#2f5a26" stroke-width="0.8"/><path d="M0,-1 L0,-14" stroke="#2f5a26" stroke-width="0.8"/></g>'; }
+  if(role==='Deputy'){ g+='<path d="M133,151 Q145,143 151,151 Q145,158 133,158Z" fill="#d7bd79" stroke="#5f411b" stroke-width="1"/><path d="M137,151L147,151" stroke="#fff4c4" stroke-width="1"/>'; }
+  if(role==='Queen'){ g+='<path d="M63,164 Q52,157 55,147 Q63,152 68,162Z" fill="#e8a5b7" opacity=".85"/><path d="M55,149L62,145L65,154" fill="none" stroke="#9e5368" stroke-width="1"/>'; }
   if(clan==='BloodClan'){ g+='<rect x="80" y="135" width="40" height="6" rx="3" fill="#6a2a6a" opacity=".92"/>'; g+='<g fill="#f0ece4"><path d="M84,141 l2.4,5 l2.4,-5z"/><path d="M94,141 l2.4,5 l2.4,-5z"/><path d="M104,141 l2.4,5 l2.4,-5z"/><path d="M114,141 l2.4,5 l2.4,-5z"/></g>'; }
   return g+'</g>';
 };
@@ -641,6 +647,7 @@ WCM.svg.card = function(c, opts){
     '<rect x="5" y="5" width="230" height="310" rx="23" fill="url(#'+gid+')" stroke="'+r.b+'" stroke-width="6"/>'+
     '<rect x="13" y="13" width="214" height="294" rx="17" fill="url(#'+gid+'_g)" stroke="'+r.g+'" stroke-width="1.6" opacity=".85"/>'+
     '<path d="M18 49H222" stroke="'+r.g+'" stroke-width="1.2" opacity=".6"/>'+motif+halo+
+    '<circle cx="207" cy="32" r="12" fill="'+cl[1]+'" stroke="'+r.g+'" stroke-width="1.2"/><text x="207" y="37" font-size="13" text-anchor="middle" fill="'+cl[2]+'">'+cl[3]+'</text>'+
     '<path d="M32 65 Q120 36 208 65 L208 231 Q120 252 32 231Z" fill="#fff9e9" opacity=".09" stroke="'+cl[2]+'" stroke-width="1.2"/>'+
     '<text x="22" y="34" font-size="11" font-weight="800" fill="#fff5d2" letter-spacing=".4">'+clanTxt+'</text>'+gems+
     '<g transform="translate(20,48)">'+portrait+'</g>'+
