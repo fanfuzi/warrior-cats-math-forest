@@ -553,6 +553,7 @@ WCM.svg.fractionCompare = function(n1,d1,n2,d2){
 /* ============ CHARACTER CARDS ============ */
 WCM.svg.catPortrait = function(c){
   var coat=c.coat, eye=c.eye, mark=c.mark||'solid', coat2=c.coat2||'#3a2a1a', ST='#241408';
+  var role=(c.role&&c.role.en)||'', clan=c.clan||'';
   var g='<g class="cat-portrait">';
   g+='<path d="M150,186 Q190,172 180,142 Q175,128 158,138" fill="none" stroke="'+coat+'" stroke-width="14" stroke-linecap="round"/>';
   g+='<path d="M54,196 Q46,132 100,130 Q154,132 146,196 Z" fill="'+coat+'" stroke="'+ST+'" stroke-width="3" stroke-linejoin="round"/>';
@@ -593,6 +594,13 @@ WCM.svg.catPortrait = function(c){
     '<line x1="74" y1="117" x2="44" y2="120"/>'+
     '<line x1="126" y1="112" x2="156" y2="108"/>'+
     '<line x1="126" y1="117" x2="156" y2="120"/></g>';
+  /* ear tufts */
+  g+='<path d="M58,40 L53,27 L67,38 Z" fill="'+coat+'" opacity=".85"/>';
+  g+='<path d="M142,40 L147,27 L133,38 Z" fill="'+coat+'" opacity=".85"/>';
+  /* role & clan accessories (hidden cards pass a stripped object, so these skip) */
+  if(role==='Clan Leader'){ g+='<text x="100" y="74" font-size="13" text-anchor="middle" fill="#ffd56b" stroke="#6a4a10" stroke-width="0.4">✦</text>'; }
+  if(role==='Medicine Cat'){ g+='<g transform="translate(130,156)"><path d="M0,0 Q-6,-9 0,-15 Q6,-9 0,0 Z" fill="#6fcf6f" stroke="#2f5a26" stroke-width="0.8"/><path d="M0,-1 L0,-14" stroke="#2f5a26" stroke-width="0.8"/></g>'; }
+  if(clan==='BloodClan'){ g+='<rect x="80" y="135" width="40" height="6" rx="3" fill="#6a2a6a" opacity=".92"/>'; g+='<g fill="#f0ece4"><path d="M84,141 l2.4,5 l2.4,-5z"/><path d="M94,141 l2.4,5 l2.4,-5z"/><path d="M104,141 l2.4,5 l2.4,-5z"/><path d="M114,141 l2.4,5 l2.4,-5z"/></g>'; }
   return g+'</g>';
 };
 
@@ -602,18 +610,31 @@ WCM.svg.card = function(c, opts){
   var RAR={1:{b:'#a9762e',g:'#d99a3e'},2:{b:'#3f7a3a',g:'#6fcf6f'},3:{b:'#2f6fa8',g:'#5bb0e8'},4:{b:'#5b3294',g:'#b07ce0'},5:{b:'#b9862a',g:'#ffd56b'}};
   var CLAN={ThunderClan:['#4a7c2e','#16300a','#f4a738','⚡'],RiverClan:['#226a86','#0e2c3a','#5fd9ca','💧'],WindClan:['#8a7a4a','#332c18','#d4b56a','💨'],ShadowClan:['#46356b','#140d22','#b07ce0','🌑'],StarClan:['#3a4a8a','#0c1428','#b0c4ff','✦'],BloodClan:['#7a2a2a','#2a0a0a','#e05a5a','🩸']};
   var cl=CLAN[c.clan]||CLAN.ThunderClan, r=RAR[c.rarity]||RAR[1], gid='cg_'+c.id;
+  var clan=c.clan||'ThunderClan';
   var portrait=WCM.svg.catPortrait(hidden?{coat:'#1b2a1d',eye:'#1b2a1d',mark:'solid'}:c);
   var gems=''; for(var i=0;i<5;i++){ gems+='<text x="'+(98+i*11)+'" y="33" font-size="12" text-anchor="middle" fill="'+(hidden?'#2a3a2c':(i<c.rarity?r.g:'#22301c'))+'">◆</text>'; }
   var clanTxt=hidden?'???':(cl[3]+' '+WCM.clanName(c.clan));
   var nameTxt=hidden?'???':WCM.cardName(c);
   var roleTxt=hidden?(zh?'未發現':'Undiscovered'):WCM.cardRole(c);
+  /* clan-themed background motif (faint, sits behind the portrait) */
+  var motif='';
+  if(clan==='ThunderClan'){ motif='<g opacity="0.16" fill="none" stroke="'+cl[2]+'" stroke-width="2" stroke-linecap="round"><path d="M28,250 L28,196"/><path d="M24,210 L17,204 M32,210 L39,204"/><path d="M212,250 L212,196"/><path d="M208,210 L201,204 M216,210 L223,204"/><path d="M182,66 L176,86 L186,84 L178,104" fill="'+cl[2]+'" opacity=".55"/></g>'; }
+  else if(clan==='RiverClan'){ motif='<g opacity="0.2" fill="none" stroke="'+cl[2]+'" stroke-width="2" stroke-linecap="round"><path d="M18,86 Q38,80 58,86 Q78,92 98,86"/><path d="M142,86 Q162,80 182,86 Q202,92 222,86"/><path d="M28,238 Q48,232 68,238 Q88,244 108,238"/><path d="M148,238 Q168,232 188,238 Q208,244 222,238"/></g>'; }
+  else if(clan==='WindClan'){ motif='<g opacity="0.2" fill="none" stroke="'+cl[2]+'" stroke-width="2" stroke-linecap="round"><path d="M18,78 Q58,68 98,80 Q138,90 178,76 Q208,68 225,78"/><path d="M22,244 L44,238 M54,246 L78,240 M150,246 L174,240"/></g>'; }
+  else if(clan==='ShadowClan'){ motif='<g opacity="0.22"><path d="M200,58 A14,14 0 0 1 200,86 A10,10 0 0 0 200,58 Z" fill="'+cl[2]+'"/><circle cx="32" cy="78" r="1.6" fill="'+cl[2]+'"/><circle cx="52" cy="58" r="1.6" fill="'+cl[2]+'"/><circle cx="200" cy="128" r="1.6" fill="'+cl[2]+'"/><circle cx="40" cy="240" r="1.6" fill="'+cl[2]+'"/><circle cx="208" cy="232" r="1.6" fill="'+cl[2]+'"/></g>'; }
+  else if(clan==='StarClan'){ motif='<g opacity="0.3" fill="'+cl[2]+'"><text x="30" y="82" font-size="11">✦</text><text x="202" y="72" font-size="13">✦</text><text x="42" y="242" font-size="10">✦</text><text x="206" y="232" font-size="12">✦</text><text x="120" y="48" font-size="10">✦</text></g>'; }
+  else if(clan==='BloodClan'){ motif='<g opacity="0.22" fill="'+cl[2]+'"><path d="M30,80 c-2,5 2,7 0,11"/><path d="M210,90 c-2,5 2,7 0,11"/><circle cx="30" cy="238" r="2.6"/><circle cx="210" cy="238" r="2.6"/><circle cx="24" cy="150" r="2"/><circle cx="216" cy="160" r="2"/></g>'; }
+  /* rarity-5 cards get a soft golden halo behind the cat */
+  var haloDef = (c.rarity>=5) ? '<radialGradient id="'+gid+'_h" cx="0.5" cy="0.5" r="0.55"><stop offset="0" stop-color="'+r.g+'" stop-opacity="0.55"/><stop offset="1" stop-color="'+r.g+'" stop-opacity="0"/></radialGradient>' : '';
+  var halo = (c.rarity>=5 && !hidden) ? '<circle cx="120" cy="150" r="88" fill="url(#'+gid+'_h)" opacity="0.6"/>' : '';
   return '<svg viewBox="0 0 240 320" xmlns="http://www.w3.org/2000/svg" class="char-card'+(opts.big?' big':'')+'">'+
     '<defs><linearGradient id="'+gid+'" x1="0" y1="0" x2="0.4" y2="1">'+
       '<stop offset="0" stop-color="'+cl[0]+'"/><stop offset="1" stop-color="'+cl[1]+'"/></linearGradient>'+
     '<radialGradient id="'+gid+'_g" cx="0.5" cy="0.34" r="0.75">'+
-      '<stop offset="0" stop-color="'+cl[0]+'" stop-opacity="0.95"/><stop offset="1" stop-color="'+cl[1]+'"/></radialGradient></defs>'+
+      '<stop offset="0" stop-color="'+cl[0]+'" stop-opacity="0.95"/><stop offset="1" stop-color="'+cl[1]+'"/></radialGradient>'+haloDef+'</defs>'+
     '<rect x="5" y="5" width="230" height="310" rx="20" fill="url(#'+gid+'_g)" stroke="'+r.b+'" stroke-width="6"/>'+
     '<rect x="15" y="15" width="210" height="290" rx="14" fill="none" stroke="'+r.g+'" stroke-width="1.4" opacity=".55"/>'+
+    motif+halo+
     '<text x="20" y="33" font-size="13" font-weight="800" fill="'+cl[2]+'">'+clanTxt+'</text>'+gems+
     '<g transform="translate(20,50)">'+portrait+'</g>'+
     (hidden?'<text x="120" y="178" font-size="42" text-anchor="middle" fill="#3a4a3c" opacity=".8">?</text>':'')+

@@ -667,8 +667,9 @@ WCM.ui.finish = function(){
      so the album grows steadily but not too fast. Rarer cards (higher rarity)
      are weighted to appear less often in randomUncollectedCard. */
   if(!cardId && stars===3){
-    var maxRank = curIdx>=WCM.RANKS.length-1;
-    var dropChance = s.isReview ? 0.30 : (s.level.boss ? 0.25 : (maxRank ? 0.18 : 0.08));
+    /* ~1 card per 4-5 perfect clears on normal levels (22%); boss & review a
+       touch more generous since they are harder / about fixing mistakes. */
+    var dropChance = s.isReview ? 0.28 : (s.level.boss ? 0.28 : 0.22);
     if(Math.random()<dropChance) cardId=WCM.randomUncollectedCard();
   }
   if(cardId){ WCM.addCard(cardId); s.cardEarned=WCM.cardById(cardId); }
